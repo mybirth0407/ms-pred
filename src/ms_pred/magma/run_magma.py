@@ -531,7 +531,10 @@ def run_magma_augmentation(
             params,
             partial_aug_safe,
             max_cpu=workers,
-            chunks=1000,
+            # Finer chunks so a batch dominated by a few huge molecules (e.g. NIST'23
+            # lipids) doesn't stall a worker for a long time — improves load balancing
+            # across many workers.
+            chunks=min(len(params), 8000),
             output_func=write_output_objs,
             task_name='MAGMa augmentation',
         )
