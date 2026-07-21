@@ -201,40 +201,68 @@ class BinnedDataset(Dataset):
 
         self.weights = np.array(self.weights)
 
-        # Read in all specs
+        # Read in all specs.
         self.spec_names = self.df["spec"].values
-        spec_files = [
-            (data_dir / "subformulae" / f"{form_dir_name}" / f"{spec_name}.json")
-            for spec_name in self.spec_names
-        ]
+        subform_path = data_dir / "subformulae" / f"{form_dir_name}"
 
         def process_spec_file(x):
             return common.bin_from_file(x, num_bins=num_bins, upper_limit=upper_limit)
 
-        if self.num_workers == 0:
-            spec_outputs = [process_spec_file(i) for i in spec_files]
+        def process_spec_str(s):
+            if s is None:
+                return (None, None)
+            return common.bin_from_str(s, num_bins=num_bins, upper_limit=upper_limit)
+
+        if str(subform_path).endswith(".hdf5"):
+            # Current subformulae are stored in a single HDF5 keyed per collision
+            # (`<spec>_collision <ce>.json`). 3DMolMS is collision-agnostic, so take one
+            # representative (lowest-CE) spectrum per spec. Read strings in the main
+            # process (cheap), then bin in parallel.
+            subform_h5 = common.HDF5Dataset(subform_path)
+            spec_to_key = {}
+            for k in subform_h5.get_all_names():
+                spec = k.rsplit("_collision ", 1)[0]
+                if spec not in spec_to_key or k < spec_to_key[spec]:
+                    spec_to_key[spec] = k
+            spec_strs = [
+                subform_h5.read_str(spec_to_key[s]) if s in spec_to_key else None
+                for s in self.spec_names
+            ]
+            subform_h5.close()
+            if self.num_workers == 0:
+                spec_outputs = [process_spec_str(i) for i in spec_strs]
+            else:
+                spec_outputs = common.chunked_parallel(
+                    spec_strs, process_spec_str, chunks=100, max_cpu=self.num_workers,
+                    timeout=4000, max_retries=3, use_ray=use_ray,
+                )
         else:
-            spec_outputs = common.chunked_parallel(
-                spec_files,
-                process_spec_file,
-                chunks=100,
-                max_cpu=self.num_workers,
-                timeout=4000,
-                max_retries=3,
-                use_ray=use_ray,
-            )
+            # Legacy directory-of-JSON layout (`<form_dir_name>/<spec>.json`).
+            spec_files = [subform_path / f"{spec_name}.json" for spec_name in self.spec_names]
+            if self.num_workers == 0:
+                spec_outputs = [process_spec_file(i) for i in spec_files]
+            else:
+                spec_outputs = common.chunked_parallel(
+                    spec_files, process_spec_file, chunks=100, max_cpu=self.num_workers,
+                    timeout=4000, max_retries=3, use_ray=use_ray,
+                )
 
         self.metas, self.spec_ars = zip(*spec_outputs)
-        mask = np.array([i is not None for i in self.spec_ars])
-        logging.info(f"Could not find tables for {np.sum(~mask)} spec")
+        mask = [i is not None for i in self.spec_ars]
+        logging.info(f"Could not find tables for {sum(not m for m in mask)} spec")
 
-        # Self.weights, self. mol_graphs
-        self.metas = np.array(self.metas)[mask].tolist()
-        self.spec_ars = np.array(self.spec_ars, dtype=object)[mask].tolist()
-        self.df = self.df[mask]
-        self.spec_names = np.array(self.spec_names)[mask].tolist()
-        self.weights = np.array(self.weights)[mask].tolist()
-        self.mol_graphs = np.array(self.mol_graphs, dtype=object)[mask].tolist()
+        # Filter with list comprehensions: np.array(..., dtype=object) collapses
+        # uniform-shape 3D graphs into a multi-dim array under numpy>=1.24, breaking
+        # the boolean mask ("could not broadcast (300,28) into (300,)").
+        def _keep(seq):
+            return [x for x, m in zip(seq, mask) if m]
+
+        self.metas = _keep(list(self.metas))
+        self.spec_ars = _keep(list(self.spec_ars))
+        self.df = self.df[np.array(mask)]
+        self.spec_names = _keep(list(self.spec_names))
+        self.weights = _keep(list(self.weights))
+        self.mol_graphs = _keep(list(self.mol_graphs))
 
         self.adducts = [
             common.ion2onehot_pos[self.name_to_adduct[i]] for i in self.spec_names
