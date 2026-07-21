@@ -44,7 +44,7 @@ for test_entry in test_entries:
     --binned-pred-file {out_binned} \\
     --max-peaks 100 \\
     --min-inten 0 \\
-    --formula-dir-name no_subform \\
+    --formula-dir-name no_subform.hdf5 \\
     --dataset {dataset_name}"""
     print(eval_cmd)
     subprocess.run(eval_cmd, shell=True, check=True)

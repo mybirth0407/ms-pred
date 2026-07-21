@@ -178,3 +178,6 @@ data/spec_datasets/*/magma_outputs/
 data/spec_datasets/*/_work/
 # compiled Cython extension (MassFormer graphormer)
 src/ms_pred/massformer_pred/massformer_code/*.so
+data/spec_datasets/*/mgf_files
+data/spec_datasets/*/subformulae
+data/spec_datasets/*/magma_outputs
