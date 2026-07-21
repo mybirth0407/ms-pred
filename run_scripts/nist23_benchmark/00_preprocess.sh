@@ -25,20 +25,36 @@ PPM_DIFF="${PPM_DIFF:-20}"
 mkdir -p "${DATA_DIR}"
 
 # ---------------------------------------------------------------------------
-# Stage 0: raw SDF -> labels.tsv + spec_files.hdf5 (+ mgf_files/)
-# This uses the external NIST parser (reformat_nist_lcmsms_sdf.py) from
-# https://github.com/rogerwwww/ms-data-parser — it is NOT vendored in this repo.
+# Stage 0: raw NIST'23 export -> labels.tsv + spec_files.hdf5 (+ mgf_files/)
+# Uses the external NIST parser reformat_nist_lcmsms_sdf.py from
+# https://github.com/rogerwwww/ms-data-parser (NOT vendored). Set MS_DATA_PARSER
+# to its checkout. Two export shapes are supported:
+#   (a) a single combined .SDF that already carries the spectral <FIELD> blocks
+#       -> feed it straight to reformat_nist_lcmsms_sdf.py; OR
+#   (b) a structure-only .sdf + a spectra .msp (this is what our NIST'23 export was)
+#       -> first merge them with data_scripts/nist23/build_combined_sdf.py, then reformat.
+# For (b), set NIST23_RAW to the directory holding <stem>.sdf + <stem>.msp pairs.
 # ---------------------------------------------------------------------------
 if [[ -f "${LABELS}" && -f "${SPECS}" ]]; then
-  echo "[stage 0] ${LABELS} and ${SPECS} already exist — skipping SDF conversion."
+  echo "[stage 0] ${LABELS} and ${SPECS} already exist — skipping build."
+elif [[ -n "${NIST23_RAW:-}" && -n "${MS_DATA_PARSER:-}" ]]; then
+  echo "[stage 0] building combined SDF from structure .sdf + spectra .msp in ${NIST23_RAW}"
+  COMBINED="${WORK_SDF:-${DATA_DIR}/_work/combined_nist23.sdf}"
+  mkdir -p "$(dirname "${COMBINED}")"
+  python data_scripts/nist23/build_combined_sdf.py --raw-dir "${NIST23_RAW}" --out "${COMBINED}"
+  echo "[stage 0] reformat combined SDF -> labels.tsv + spec_files.hdf5"
+  python "${MS_DATA_PARSER}/reformat_nist_lcmsms_sdf.py" \
+    --input-file "${COMBINED}" --targ-dir "${DATA_DIR}" --dataset nist2023 --workers "${WORKERS}"
 else
-  echo "[stage 0] ERROR: ${LABELS} / ${SPECS} not found."
-  echo "  Convert the raw NIST'23 .SDF first with the external ms-data-parser, e.g.:"
+  echo "[stage 0] ERROR: ${LABELS} / ${SPECS} not found and no build inputs set."
+  echo "  Option (a) — combined SDF already has spectral fields:"
   echo "    git clone https://github.com/rogerwwww/ms-data-parser"
   echo "    python ms-data-parser/reformat_nist_lcmsms_sdf.py \\"
-  echo "        --input \"\${NIST23_SDF:?set NIST23_SDF to the exported .SDF}\" \\"
-  echo "        --output-dir ${DATA_DIR}"
-  echo "  The output must land as ${DATA_DIR}/{labels.tsv,spec_files.hdf5,mgf_files/}."
+  echo "        --input-file <combined.sdf> --targ-dir ${DATA_DIR} --dataset nist2023"
+  echo "  Option (b) — structure .sdf + spectra .msp (set NIST23_RAW and MS_DATA_PARSER):"
+  echo "    NIST23_RAW=<dir with *.sdf + *.msp> MS_DATA_PARSER=<ms-data-parser checkout> \\"
+  echo "        bash run_scripts/nist23_benchmark/00_preprocess.sh"
+  echo "  Either way the output must land as ${DATA_DIR}/{labels.tsv,spec_files.hdf5,mgf_files/}."
   exit 1
 fi
 

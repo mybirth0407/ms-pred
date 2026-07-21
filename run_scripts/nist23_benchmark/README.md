@@ -25,18 +25,38 @@ python -c "import torch, dgl, ms_pred; print(torch.__version__, dgl.__version__,
 ## 1. Point at the NIST'23 data
 
 `data/spec_datasets/nist23/splits/{split_1,scaffold_1}.tsv` already ship with the repo.
-You provide the spectra. Convert the exported NIST'23 `.SDF` into `labels.tsv` +
-`spec_files.hdf5` using the external
-[ms-data-parser](https://github.com/rogerwwww/ms-data-parser):
+You provide the spectra. Build `labels.tsv` + `spec_files.hdf5` with the external
+[ms-data-parser](https://github.com/rogerwwww/ms-data-parser)'s
+`reformat_nist_lcmsms_sdf.py`, which needs a **combined SDF** (molblocks carrying the
+spectral `> <FIELD>` blocks).
+
+Two export shapes:
+
+**(a) Combined SDF** (already has `<MASS SPECTRAL PEAKS>`, `<NISTNO>`, `<PRECURSOR TYPE>`…):
 
 ```bash
 git clone https://github.com/rogerwwww/ms-data-parser
 python ms-data-parser/reformat_nist_lcmsms_sdf.py \
-    --input /path/to/nist23.sdf \
-    --output-dir data/spec_datasets/nist23
+    --input-file /path/to/combined_nist23.sdf \
+    --targ-dir data/spec_datasets/nist23 --dataset nist2023 --workers 32
 ```
 
-Result must look like:
+**(b) Structure-only `.sdf` + spectra `.msp`** (some NIST'23 exports split these — the
+structure SDF has molblocks but no peaks; the MSP has peaks/adduct/collision-energy/
+InChIKey but no structure). Merge them first, then reformat:
+
+```bash
+python data_scripts/nist23/build_combined_sdf.py \
+    --raw-dir /path/to/nist23_export --out /tmp/combined_nist23.sdf
+python ms-data-parser/reformat_nist_lcmsms_sdf.py \
+    --input-file /tmp/combined_nist23.sdf \
+    --targ-dir data/spec_datasets/nist23 --dataset nist2023 --workers 32
+```
+
+`build_combined_sdf.py` joins structures to spectra by RDKit InChIKey (exact stereo,
+connectivity fallback) — robust to the SDF/MSP ordering indels and name-encoding
+mismatches. `00_preprocess.sh` runs this path automatically when `NIST23_RAW` and
+`MS_DATA_PARSER` are set. Result must look like:
 
 ```
 data/spec_datasets/nist23/
@@ -47,8 +67,8 @@ data/spec_datasets/nist23/
 ```
 
 > **Critical:** the parser's spectrum IDs must match the split files (`nist_<n>` form).
-> `00_preprocess.sh` asserts this and aborts if they diverge — otherwise every model
-> would train on the wrong data.
+> `00_preprocess.sh` asserts this and aborts if they diverge. Our NIST'23 build
+> reproduced 99.4% of the shipped split IDs.
 
 ## 2. Preprocess (once)
 
