@@ -54,6 +54,11 @@ iterative_args:
      magma-dag-folder: [results/iceberg_nist23/split_1_rnd1/preds_train_100_inten.hdf5]
      seed: [1]
 
+  -  split-name: [scaffold_1.tsv]
+     save-dir: [scaffold_1_rnd1]
+     magma-dag-folder: [results/iceberg_nist23/scaffold_1_rnd1/preds_train_100_inten.hdf5]
+     seed: [1]
+
 #  -  split-name: [split_1.tsv]
 #     save-dir: [split_1_rnd2]
 #     magma-dag-folder: [results/iceberg_nist23/split_1_rnd2/preds_train_100_inten.hdf5]

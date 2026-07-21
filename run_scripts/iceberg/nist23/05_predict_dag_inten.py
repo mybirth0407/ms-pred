@@ -7,9 +7,9 @@ node_num = 100
 num_workers = 64
 test_entries = [
     {"dataset": "nist23", "split": "split_1", "folder": "split_1_rnd1"},
+    {"dataset": "nist23", "split": "scaffold_1", "folder": "scaffold_1_rnd1"},
     # {"dataset": "nist23", "split": "split_1", "folder": "split_1_rnd2"},
     # {"dataset": "nist23", "split": "split_1", "folder": "split_1_rnd3"},
-    # {"dataset": "nist23", "split": "scaffold_1", "folder": "scaffold_1_rnd1"},
     # {"dataset": "nist23", "split": "scaffold_1", "folder": "scaffold_1_rnd2"},
     # {"dataset": "nist23", "split": "scaffold_1", "folder": "scaffold_1_rnd3"},
 ]
@@ -22,7 +22,9 @@ for test_entry in test_entries:
 
     base_formula_folder = Path(f"results/iceberg_{dataset}")
     res_folder = Path(f"results/iceberg_{dataset}/")
-    model = res_folder / folder / "ckpt/inten_contr/best.ckpt"
+    # Spectrum-only benchmark uses the base intensity checkpoint (no contrastive finetuning).
+    # If you enable contrastive finetuning, switch this to "ckpt/inten_contr/best.ckpt".
+    model = res_folder / folder / "ckpt/inten/best.ckpt"
 
     if not model.exists(): 
         continue
