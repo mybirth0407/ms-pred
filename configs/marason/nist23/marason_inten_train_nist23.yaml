@@ -19,7 +19,7 @@ universal_args:
   max-epochs: [200]
 
   dataset-name: [nist23]
-  split-name: [split_1.tsv]
+  split-name: [scaffold_1.tsv]
 
   include-unshifted-mz: [false]
   multi-gnn: [true]
@@ -59,11 +59,6 @@ universal_args:
   matching-method: ["softmax"]
 
 iterative_args:
-  -  split-name: [split_1.tsv]
-     save-dir: [split_1_rnd1]
-     magma-dag-folder: [results/marason_nist23/split_1_rnd1/preds_train_100_inten.hdf5]
-     seed: [1]
-
   -  split-name: [scaffold_1.tsv]
      save-dir: [scaffold_1_rnd1]
      magma-dag-folder: [results/marason_nist23/scaffold_1_rnd1/preds_train_100_inten.hdf5]

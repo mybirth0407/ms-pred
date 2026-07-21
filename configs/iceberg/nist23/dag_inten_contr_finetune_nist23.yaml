@@ -20,7 +20,7 @@ universal_args:
   num-decoy-h5s: [10]
 
   dataset-name: [nist23]
-  split-name: [split_1.tsv]
+  split-name: [scaffold_1.tsv]
 
   learning-rate: [0.0005]
   lr-decay-rate: [0.825]
@@ -51,13 +51,6 @@ universal_args:
   sk-tau: [0.05]
 
 iterative_args:
-  -  split-name: [split_1.tsv]
-     save-dir: [split_1_rnd1]
-     magma-dag-folder: [results/iceberg_nist23/split_1_rnd1/preds_train_100_inten.hdf5]
-     decoy-path: ['results/iceberg_nist23/split_1_rnd1/preds_train_100/decoy_tree_preds/decoy_tree_preds.hdf5']
-     train-checkpoint: [results/iceberg_nist23/split_1_rnd1/ckpt/inten/best.ckpt]
-     seed: [1]
-
 #  -  split-name: [split_1.tsv]
 #     save-dir: [split_1_rnd2]
 #     magma-dag-folder: [results/iceberg_nist23/split_1_rnd2/preds_train_100_inten.hdf5]

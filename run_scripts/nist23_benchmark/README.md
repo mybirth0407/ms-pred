@@ -5,7 +5,12 @@ reports spectrum-prediction accuracy (cosine similarity, entropy similarity, cov
 in one comparable table.
 
 **Models (6):** ICEBERG 2.1, SCARF, MassFormer, 3DMolMS, GLACIER, MARASON.
-**Splits:** `split_1` (random) and `scaffold_1`, seed 1 each — 2 runs per model.
+**Split:** `scaffold_1` (scaffold split), seed 1 — 1 run per model. The random split
+(`split_1`) is intentionally dropped: random splits leak structural similarity between
+train and test (analogs/scaffolds shared across folds), giving over-optimistic numbers.
+Scaffold split holds out whole Bemis–Murcko scaffolds, measuring generalization to novel
+chemistry — the metric that matters for structure elucidation. The `split_1.tsv` file
+still ships; re-add its `iterative_args`/`test_entries` entries to run it.
 **Scope:** spectrum prediction only. No retrieval, no contrastive finetuning
 (see *Scope decisions* below). Design doc:
 [`docs/superpowers/specs/2026-07-21-nist23-benchmark-design.md`](../../docs/superpowers/specs/2026-07-21-nist23-benchmark-design.md).
@@ -130,9 +135,10 @@ python analysis/nist23_benchmark_aggregate.py
   ranking; the user scoped this benchmark to spectrum accuracy without retrieval. Turning
   it off keeps all models on equal footing and avoids the PubChem-map download. To enable
   it for ICEBERG/GLACIER, see the comments in their `nist23` train scripts.
-- **Two splits, one seed.** `split_1_rnd1` + `scaffold_1_rnd1`. To reproduce the papers'
-  full grid (3 seeds × 2 splits), add the extra `iterative_args` entries in each
-  `configs/<model>/nist23/*.yaml` and the matching `test_entries` in the predict drivers.
+- **Scaffold split, one seed.** `scaffold_1_rnd1` only (random split dropped, see above).
+  To reproduce the papers' full grid (3 seeds × random + scaffold), add the extra
+  `iterative_args` entries in each `configs/<model>/nist23/*.yaml` and the matching
+  `test_entries` in the predict drivers.
 
 ## Known upstream issue (SCARF)
 

@@ -1,6 +1,6 @@
 """SCARF NIST'23 — predict test spectra and evaluate spectrum accuracy.
 
-Runs the two benchmark splits (random split_1 + scaffold_1, seed 1 each) and writes
+Runs the scaffold split (scaffold_1, seed 1) and writes
 preds/pred_eval.yaml via analysis/spec_pred_eval.py.
 """
 from pathlib import Path
@@ -10,7 +10,6 @@ python_file = "src/ms_pred/scarf_pred/predict_inten.py"
 devices = "0"
 node_num = 300
 test_entries = [
-    {"dataset": "nist23", "split": "split_1", "folder": "split_1_rnd1"},
     {"dataset": "nist23", "split": "scaffold_1", "folder": "scaffold_1_rnd1"},
 ]
 

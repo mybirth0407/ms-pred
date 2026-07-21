@@ -15,7 +15,7 @@ set -euo pipefail
 
 python launcher_scripts/run_from_config.py configs/scarf/nist23/scarf_gen_predict_train_nist23.yaml
 
-for folder in split_1_rnd1 scaffold_1_rnd1; do
+for folder in scaffold_1_rnd1; do
   python data_scripts/forms/03_add_form_intens.py \
     --pred-form-folder results/scarf_nist23/${folder}/preds_train_300/form_preds \
     --true-form-folder data/spec_datasets/nist23/subformulae/no_subform.hdf5 \

@@ -28,7 +28,6 @@ MODEL_DIRS = {
 }
 
 SPLIT_LABEL = {
-    "split_1_rnd1": "random (split_1)",
     "scaffold_1_rnd1": "scaffold (scaffold_1)",
 }
 

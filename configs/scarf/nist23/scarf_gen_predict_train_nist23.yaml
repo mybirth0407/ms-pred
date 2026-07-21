@@ -19,10 +19,6 @@ universal_args:
   max-nodes: [300]
 
 iterative_args:
-  -  split-name: [split_1.tsv]
-     checkpoint: [results/scarf_nist23/split_1_rnd1/version_0/best.ckpt]
-     save-dir: [split_1_rnd1/preds_train_300]
-
   -  split-name: [scaffold_1.tsv]
      checkpoint: [results/scarf_nist23/scaffold_1_rnd1/version_0/best.ckpt]
      save-dir: [scaffold_1_rnd1/preds_train_300]

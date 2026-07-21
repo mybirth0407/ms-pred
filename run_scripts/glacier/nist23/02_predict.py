@@ -1,7 +1,7 @@
 """GLACIER NIST'23 — predict test spectra and evaluate spectrum accuracy.
 
 Uses version_0 checkpoints (no contrastive finetuning in this benchmark). Runs the
-two benchmark splits and writes preds/pred_eval.yaml via analysis/spec_pred_eval.py.
+scaffold split (scaffold_1) and writes preds/pred_eval.yaml via analysis/spec_pred_eval.py.
 """
 from pathlib import Path
 import subprocess
@@ -9,7 +9,6 @@ import subprocess
 python_file = "src/ms_pred/glacier/predict_inten_joint.py"
 num_workers = 64
 test_entries = [
-    {"dataset": "nist23", "split": "split_1", "folder": "split_1_rnd1"},
     {"dataset": "nist23", "split": "scaffold_1", "folder": "scaffold_1_rnd1"},
 ]
 devices = "0,1"

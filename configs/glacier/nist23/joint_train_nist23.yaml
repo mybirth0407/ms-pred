@@ -20,7 +20,7 @@ universal_args:
   dataset-name: [nist23]
   dataset-labels: [labels.tsv]
   magma-folder: [magma_outputs]
-  split-name: [split_1.tsv]
+  split-name: [scaffold_1.tsv]
 
   learning-rate: [0.0004]
   lr-decay-rate: [0.9]
@@ -59,9 +59,6 @@ universal_args:
   inten-loss-fn: [cosine]
 
 iterative_args:
-  -  split-name: [split_1.tsv]
-     save-dir: [split_1_rnd1]
-     seed: [1]
   -  split-name: [scaffold_1.tsv]
      save-dir: [scaffold_1_rnd1]
      seed: [1]

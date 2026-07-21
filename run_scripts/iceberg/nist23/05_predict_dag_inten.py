@@ -6,7 +6,6 @@ python_file = "src/ms_pred/iceberg/predict_inten.py"
 node_num = 100
 num_workers = 64
 test_entries = [
-    {"dataset": "nist23", "split": "split_1", "folder": "split_1_rnd1"},
     {"dataset": "nist23", "split": "scaffold_1", "folder": "scaffold_1_rnd1"},
     # {"dataset": "nist23", "split": "split_1", "folder": "split_1_rnd2"},
     # {"dataset": "nist23", "split": "split_1", "folder": "split_1_rnd3"},

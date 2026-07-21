@@ -20,10 +20,6 @@ universal_args:
   num-decoys: [0]
 
 iterative_args:
-  -  split-name: [split_1.tsv]
-     checkpoint-pth: [results/marason_nist23/split_1_rnd1/ckpt/gen/best.ckpt]
-     save-dir: [split_1_rnd1/preds_train_100]
-
   -  split-name: [scaffold_1.tsv]
      checkpoint-pth: [results/marason_nist23/scaffold_1_rnd1/ckpt/gen/best.ckpt]
      save-dir: [scaffold_1_rnd1/preds_train_100]

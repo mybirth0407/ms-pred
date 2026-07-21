@@ -1,6 +1,6 @@
 """MARASON NIST'23 — predict test spectra and evaluate spectrum accuracy.
 
-Runs the two benchmark splits (random split_1 + scaffold_1, seed 1 each) and writes
+Runs the scaffold split (scaffold_1, seed 1) and writes
 preds/pred_eval.yaml via analysis/spec_pred_eval.py.
 
 Note: MARASON is retrieval-augmented. Prediction passes --add-ref with --ref-dir
@@ -16,8 +16,6 @@ node_num = 100
 num_workers = 64
 devices = "0,1"
 test_entries = [
-    {"dataset": "nist23", "split": "split_1", "folder": "split_1_rnd1",
-     "ref_dir": "data/closest_neighbors/infinite"},
     {"dataset": "nist23", "split": "scaffold_1", "folder": "scaffold_1_rnd1",
      "ref_dir": "data/closest_neighbors/infinite/scaffold"},
 ]
