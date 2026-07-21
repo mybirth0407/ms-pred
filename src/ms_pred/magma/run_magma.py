@@ -452,6 +452,9 @@ def run_magma_augmentation(
     debug: bool = False,
     ppm_diff: int = 20,
     write_tsv_h5: bool = False,
+    num_shards: int = 1,
+    shard_idx: int = 0,
+    output_name: str = "magma_tree.hdf5",
 ):
     """run_magma_augmentation.
 
@@ -471,6 +474,13 @@ def run_magma_augmentation(
     spectra_dir = Path(spectra_dir)
     spec_h5 = common.HDF5Dataset(spectra_dir)
     ms_files = spec_h5.get_all_names()
+
+    # Sharding: process a deterministic 1/num_shards slice of the spectra. Combined with
+    # a distinct --output-name per shard, this lets N processes write N shard HDF5s in
+    # parallel — the single-writer HDF5 (gzip) serialization is the throughput bottleneck,
+    # not worker compute. PredSpecDB reads `<stem>_shard*.hdf5` transparently.
+    if num_shards > 1:
+        ms_files = sorted(ms_files)[shard_idx::num_shards]
 
     # Read in spec to smiles
     df = pd.read_csv(spec_labels, sep="\t")
@@ -501,7 +511,7 @@ def run_magma_augmentation(
         if write_tsv_h5:
             tsv_h5 = common.HDF5Dataset(output_dir / "magma_tsv.hdf5", mode='w')
         tree_h5 = common.PredSpecDB(
-            output_dir / "magma_tree.hdf5",
+            output_dir / output_name,
             mode='w',
             has_probs=False,
             has_brokens=True,
@@ -581,6 +591,19 @@ def get_args():
         default=False,
         action="store_true",
         help="Also write magma_tsv.hdf5. Disabled by default because downstream code uses magma_tree.hdf5.",
+    )
+    parser.add_argument(
+        "--num-shards", default=1, type=int,
+        help="Split the spectra into this many shards for parallel writing (see --shard-idx).",
+    )
+    parser.add_argument(
+        "--shard-idx", default=0, type=int,
+        help="Which shard (0..num_shards-1) this process handles.",
+    )
+    parser.add_argument(
+        "--output-name", default="magma_tree.hdf5",
+        help="Output HDF5 filename (use magma_tree_shard<i>.hdf5 when sharding; "
+             "PredSpecDB globs magma_tree_shard*.hdf5 at read time).",
     )
     parser.add_argument("--debug", default=False, action="store_true")
     return parser.parse_args()
