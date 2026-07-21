@@ -68,7 +68,7 @@ def predict():
     save_dir = Path(kwargs["save_dir"])
     common.setup_logger(save_dir, log_name="dag_gen_pred.log", debug=kwargs["debug"])
     try: 
-        pl.utilities.seed.seed_everything(kwargs.get("seed"))
+        pl.seed_everything(kwargs.get("seed"))
     except Exception as e:
         pl.seed_everything(kwargs.get("seed"))
 

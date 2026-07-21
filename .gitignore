@@ -168,3 +168,13 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# NIST/MS dataset artifacts (large; provided/built locally, not committed — splits stay tracked)
+data/spec_datasets/*/labels.tsv
+data/spec_datasets/*/spec_files.hdf5
+data/spec_datasets/*/mgf_files/
+data/spec_datasets/*/subformulae/
+data/spec_datasets/*/magma_outputs/
+data/spec_datasets/*/_work/
+# compiled Cython extension (MassFormer graphormer)
+src/ms_pred/massformer_pred/massformer_code/*.so

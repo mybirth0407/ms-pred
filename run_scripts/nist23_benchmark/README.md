@@ -22,6 +22,27 @@ source .venv/bin/activate
 python -c "import torch, dgl, ms_pred; print(torch.__version__, dgl.__version__, ms_pred.__file__)"
 ```
 
+**Always `source .venv/bin/activate` before training/predicting** — `run_from_config.py`
+spawns `python3`, so the venv must be on PATH or subprocesses use the wrong interpreter.
+
+**MassFormer only** needs a compiled Cython extension (`algos2`) that `uv sync` does not
+build. Build it once (needs Python 3.12 dev headers; if the base interpreter lacks them,
+`uv python install 3.12` provides a standalone one whose `include/python3.12` you can point
+`-I` at):
+
+```bash
+cd src/ms_pred/massformer_pred/massformer_code
+cython -3 algos2.pyx
+gcc -O3 -fPIC -fopenmp -shared \
+    -I<python3.12 include> -I"$(python -c 'import numpy;print(numpy.get_include())')" \
+    algos2.c -o "algos2$(python -c 'import sysconfig;print(sysconfig.get_config_var("EXT_SUFFIX"))')" -fopenmp
+rm -f algos2.c && cd -
+```
+
+This branch also carries two dependency-compat fixes required by the pinned stack:
+MassFormer chirality featurization uses `safe_index` (rdkit 2025.03 added chirality tags),
+and predict/hyperopt scripts call `pl.seed_everything` (moved in pytorch-lightning 2.6).
+
 ## 1. Point at the NIST'23 data
 
 `data/spec_datasets/nist23/splits/{split_1,scaffold_1}.tsv` already ship with the repo.
