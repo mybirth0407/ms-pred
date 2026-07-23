@@ -27,24 +27,26 @@ from ms_pred.iceberg import dag_data, gen_model
 
 
 def build_gen_magma_map(magma_tree_path: Path):
-    legacy_h5 = common.HDF5Dataset(magma_tree_path)
-    all_names = [name for name in legacy_h5.get_all_names() if name not in common.PredSpecDB._SPECIAL_ROOT_GROUPS]
-    if not all_names:
-        return {}
-
-    # Legacy MAGMa stores each spectrum as a top-level HDF5 dataset containing
-    # a serialized JSON blob. Detect that layout immediately
-    sample_obj = legacy_h5.h5_obj[all_names[0]]
-    if isinstance(sample_obj, h5py.Dataset):
-        return {Path(name).stem: name for name in all_names}
-
+    # PredSpecDB transparently reads either a single magma_tree.hdf5 or a set of
+    # magma_tree_shard*.hdf5 (sharded MAGMa output). Use it for enumeration so the
+    # sharded layout is handled — opening the single path via HDF5Dataset would miss
+    # the shards (and fail on the empty placeholder file left to skip re-generation).
     predspec_db = common.PredSpecDB(magma_tree_path)
-    name_to_entry = {}
-    for name in all_names:
-        ces, remarks = predspec_db.get_entries(name)
-        for ce, r in zip(ces, remarks):
-            name_to_entry[f"{name}_collision {ce}"] = (name, ce, r)
-    return name_to_entry
+    all_names = [name for name in predspec_db.get_all_names()
+                 if name not in common.PredSpecDB._SPECIAL_ROOT_GROUPS]
+    if all_names:
+        name_to_entry = {}
+        for name in all_names:
+            ces, remarks = predspec_db.get_entries(name)
+            for ce, r in zip(ces, remarks):
+                name_to_entry[f"{name}_collision {ce}"] = (name, ce, r)
+        return name_to_entry
+
+    # Legacy layout: each spectrum is a top-level HDF5 dataset holding a JSON blob.
+    legacy_h5 = common.HDF5Dataset(magma_tree_path)
+    legacy_names = [name for name in legacy_h5.get_all_names()
+                    if name not in common.PredSpecDB._SPECIAL_ROOT_GROUPS]
+    return {Path(name).stem: name for name in legacy_names}
 
 
 def add_frag_train_args(parser):

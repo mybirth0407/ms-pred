@@ -73,7 +73,7 @@ class MassSpec:
                 return None
             if not np.issubdtype(x_np.dtype, dtype):
                 if dtype == np.integer:
-                    x_np = x_np.astype(np.integer)
+                    x_np = x_np.astype(np.int64)  # np.integer is abstract; numpy>=2.0 forbids it as a dtype
                 else:
                     raise TypeError(f'Input data does not have the correct data type, expected {dtype}, got {x_np.dtype}')
             return x_np

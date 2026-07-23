@@ -618,7 +618,7 @@ def train_model():
     trainer = pl.Trainer(
         logger=[tb_logger, console_logger],
         accelerator="gpu" if kwargs["gpu"] else "cpu",
-        strategy='ddp',
+        strategy='ddp_find_unused_parameters_true',  # RAG reference params unused when reference disabled
         devices=torch.cuda.device_count() if kwargs["gpu"] else 0,
         callbacks=callbacks,
         gradient_clip_val=5,
