@@ -5,6 +5,20 @@
 **Test set:** 17,567 spectra / 9,291 molecules
 **Eval:** `analysis/spec_pred_eval.py`, `--max-peaks 100 --min-inten 0`, gold = `no_subform.hdf5`
 **Scope:** spectrum-prediction accuracy only; no test-time retrieval augmentation; contrastive finetuning off.
+**Benchmark run:** 2026-07-22 → 2026-07-23 (all training + evaluation; dates below are result-file timestamps).
+
+## Run dates
+
+| Model | Trained | Spectrum eval | Stage-1 eval | Retrieval |
+|------|:---:|:---:|:---:|:---:|
+| GLACIER | 2026-07-22 13:51 | 2026-07-22 18:19 | — | 2026-07-23 15:48 |
+| ICEBERG 2.1 | 2026-07-22 20:32 | 2026-07-23 03:04 | 2026-07-23 06:57 | 2026-07-23 11:21 |
+| MARASON | 2026-07-22 23:18 | 2026-07-23 06:01 | 2026-07-23 07:00 | 2026-07-23 22:18 |
+| MassFormer | 2026-07-22 15:00 | 2026-07-22 17:19 | — | — |
+
+- **Trained** = `best.ckpt` save time. For the 2-stage models this is the **stage-2 (inten)** checkpoint; stage-1 (gen) finished earlier — ICEBERG 07-22 05:46, MARASON 07-22 05:47.
+- **Eval** = result-yaml write time. `best.ckpt` marks the best-epoch save, so it can precede the actual end of training.
+- GLACIER / MassFormer have no Stage-1 or Retrieval run (`—`).
 
 ## 1. Spectrum accuracy (test)
 
