@@ -17,13 +17,13 @@
   | 1 | **GLACIER** | joint (multi-GPU DDP) | **0.800** | 0.736 | 0.868 | **0.396 / 0.905** |
   | 2 | **ICEBERG 2.1** | 2-stage fragment DAG | **0.722** | 0.647 | 0.818 | 0.345 / 0.901 |
   | 3 | **MARASON** | 2-stage fragment + RAG¹ | **0.720** | 0.646 | 0.805 | 0.339 / 0.891 |
-  | 4 | **MassFormer** | binned graph transformer | **0.512** | 0.486 | 0.710 | (미실행) |
+  | 4 | **MassFormer** | binned graph transformer | **0.512** | 0.486 | 0.710 | 0.214 / 0.780 |
 
   ¹ MARASON은 **base 모드(retrieval augmentation 없음)** 로 평가 — 자세한 내용은 §4, §8.
 
 - **수행 기간**: **2026-07-22 ~ 07-23** (학습+전 평가; 모델별 상세 타임라인 §3.2).
 - **데이터 전송**: 88G tarball(option B)이 원격 서버로 전송·크기검증 완료 (§7).
-- **미완료**: SCARF, 3DMolMS, MassFormer retrieval, MARASON RAG-augmented (§8).
+- **미완료**: SCARF, 3DMolMS, MARASON RAG-augmented (§8). ~~MassFormer retrieval~~ → **2026-07-29 완료**(§4.3).
 
 ---
 
@@ -143,11 +143,11 @@ MassFormer: results/massformer_baseline_nist23/scaffold_1_rnd1/version_0/best.ck
 | GLACIER | 2026-07-22 13:51 | 2026-07-22 18:19 | — | 2026-07-23 15:48 |
 | ICEBERG 2.1 | 2026-07-22 20:32 | 2026-07-23 03:04 | 2026-07-23 06:57 | 2026-07-23 11:21 |
 | MARASON | 2026-07-22 23:18 | 2026-07-23 06:01 | 2026-07-23 07:00 | 2026-07-23 22:18 |
-| MassFormer | 2026-07-22 15:00 | 2026-07-22 17:19 | — | — |
+| MassFormer | 2026-07-22 15:00 | 2026-07-22 17:19 | — | 2026-07-29 05:00 |
 
 - **"학습 완료"** = `best.ckpt` 저장 시각. **2-stage 모델(ICEBERG/MARASON)은 2단계(inten) 체크포인트 기준**이며, 1단계(gen)는 더 일찍 종료 — ICEBERG 07-22 05:46 / MARASON 07-22 05:47.
 - **"평가"** = 결과 yaml 기록 시각. `best.ckpt`는 best epoch 저장 시점이라 실제 학습 종료보다 다소 이를 수 있음.
-- GLACIER·MassFormer는 Stage-1/Retrieval 미실행(`—`).
+- GLACIER는 Stage-1 미실행, MassFormer는 Stage-1 미실행(`—`). MassFormer retrieval은 2026-07-29 추가 실행(다른 3모델보다 늦게; 코드 수정 필요했음 — §4.3).
 
 ---
 
@@ -183,15 +183,18 @@ stage-1 **생성기(generator)** 가 강도 예측 전, 참 MAGMa 프래그먼�
 - 개별 yaml: `results/<model>_nist23/scaffold_1_rnd1/pred_eval_frag_test.yaml`.
 
 ### 4.3 Retrieval top-k (테스트셋, PubChem decoy, entropy 거리)
-후보 리스트(`cands_df_scaffold_1_50.tsv`, spec당 true+decoy 최대 50개)에 대해 예측 스펙트럼 → 참값과의 거리로 랭킹. 세 모델 모두 동일한 ~17.5k 테스트 스펙트럼 평가.
+후보 리스트(`cands_df_scaffold_1_50.tsv`, spec당 true+decoy 최대 50개)에 대해 예측 스펙트럼 → 참값과의 거리로 랭킹. 네 모델 모두 동일한 ~17.5k 테스트 스펙트럼(17,565) · 동일 후보셋 · entropy 거리 · num-bins 15000 으로 평가.
 
 | 모델 | top-1 | top-2 | top-3 | top-5 | top-10 | top-20 |
 |------|:---:|:---:|:---:|:---:|:---:|:---:|
 | **GLACIER** | **0.396** | 0.578 | 0.683 | 0.796 | **0.905** | 0.968 |
 | ICEBERG 2.1 | 0.345 | 0.526 | 0.638 | 0.768 | 0.901 | 0.967 |
 | MARASON | 0.339 | 0.519 | 0.634 | 0.761 | 0.891 | 0.964 |
+| MassFormer | 0.214 | 0.359 | 0.461 | 0.600 | 0.780 | 0.916 |
 
-- MassFormer retrieval은 미실행.
+- **MassFormer** (2026-07-29 추가): 17,565 spec 전부 평가, `missing_true_candidate=0` / `missing_candidate_mapping=0`. `avg_total_decoys=46.70`(=`avg_decoys_in_full`)으로 ICEBERG/MARASON과 동일 → 비교 유효(부풀림 없음). 4모델 중 최약(스펙트럼 정확도 최저와 일관).
+- ⚠️ **MassFormer retrieval에 코드 수정이 필요했음**: 기존 `src/ms_pred/massformer_pred/predict.py`가 예측을 **레거시 raw HDF5 레이아웃**(`pred_<spec>/ikey <k>/collision <ce>/spec`)으로 써서 `retrieval_benchmark.py`의 `PredSpecDB` 리더가 못 읽음(`'Dataset' object has no attribute 'keys'`). predict.py를 ICEBERG처럼 **`PredSpecDB.write(MassSpec(binned_spec_sparse=…))`** 로 쓰도록 변경(+`--num-bins/--upper-limit/--out-name` 인자)해서 해결. accuracy 파이프라인(`spec_pred_eval.py`)은 PredSpecDB-우선 자동감지라 하위호환 유지.
+- ⚠️ **대용량 예측 시 파일당 아이템 수 제한 필수**: 후보 예측이 ~5.4M (spec,cand,CE) 항목이라, 단일 프로세스가 하나의 HDF5에 681k+ 항목을 쓰면 HDF5 객체 폭증으로 RSS가 폭발(→OOM/스왑 thrashing). **spec별 32청크로 분할**(파일당 ~170k 항목)해 8-GPU 병렬 예측 → `binned_preds_shard{0..31}.hdf5` (PredSpecDB가 읽을 때 `_shard*` glob으로 자동 병합; spec-balanced라도 read의 scan-fallback으로 정확히 병합됨). RSS 프로세스당 ~12GB 고정.
 - ⚠️ **주의(비교 유효성)**: yaml의 `avg_total_decoys` 필드가 GLACIER=186.88 vs ICEBERG/MARASON=46.7로 달라 보이지만, 이는 **후보 수가 다른 게 아니라** GLACIER가 충돌에너지 변형별로 후보 예측을 카운트해서(≈46.7×4) 부풀려진 것. 실제 후보 분자는 세 모델 모두 동일(spec당 평균 46.7, 최대 50). 따라서 **top-k 랭킹 비교는 유효**함.
 - 개별 yaml: `results/<model>_nist23/scaffold_1_rnd1/retrieval_nist23_scaffold_1_50/rerank_eval_entropy.yaml` (+ 그룹별 TSV). ⚠️ 이 yaml은 `individuals` 리스트가 방대함(GLACIER ~109MB) — 요약만 볼 땐 `grep -E '^avg_(top_[0-9]+|total_decoys|true_dist):'` 사용.
 
@@ -295,7 +298,7 @@ bash run_scripts/nist23_benchmark/run_all_models.sh          # 전 모델 학습
 |------|------|-----------|
 | **SCARF** | 미실행 | `magma_subform_50` 필요. 알려진 upstream 버그: `scarf_pred/predict_gen.py`가 `form_preds/` 디렉토리에 JSON을 쓰는데 `data_scripts/forms/03_add_form_intens.py`는 `--pred-form-folder`를 HDF5 파일로 엶(ICEBERG 정확도 PR이 add_form_intens만 HDF5로 이전). SCARF stage2에서 실패하면 이 부분 fix 필요 |
 | **3DMolMS** | 미실행 | 별도 런. aggregator에 슬롯 존재 |
-| **MassFormer retrieval** | 미실행 | §6.3 방식으로 실행 가능(binned 모델이므로 `--binned-pred`) |
+| **MassFormer retrieval** | ✅ 완료 (2026-07-29) | top-1 0.214 / top-10 0.780 (§4.3). predict.py를 PredSpecDB writer로 수정 후 실행. 재현: `run_scripts/massformer_model/nist23/03_retrieval.sh` |
 | **MARASON RAG-augmented** | 미실행 | 현재 결과는 **base 모드**(retrieval augmentation 없음). `add-reference=false`로 학습됐고 `--add-ref` 평가 경로는 precomputed nearest-neighbour store가 필요(아직 미구축). base MARASON ≈ ICEBERG(동일 생성기 계열). RAG 강화 수치는 reference store 구축 필요 |
 | **contrastive finetuning** | 미적용 | 의도적 off — PubChem decoy로 retrieval 랭킹을 개선하지만 스펙트럼 정확도 벤치마크의 공정 비교를 위해 끔. ICEBERG/GLACIER train 스크립트 주석 참고 |
 | **다중 seed / random split** | 미실행 | 현재 scaffold_1_rnd1 1회. 논문 그리드(3 seed × random+scaffold) 재현하려면 각 `configs/<model>/nist23/*.yaml`에 `iterative_args` + predict 드라이버에 `test_entries` 추가 |
