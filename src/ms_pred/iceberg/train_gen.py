@@ -184,13 +184,18 @@ def train_model():
         tree_processor=tree_processor,
     )
 
-    test_dataset = dag_data.GenDataset(
-        test_df,
-        magma_h5=magma_tree_path,
-        magma_map=name_to_json,
-        num_workers=num_workers,
-        tree_processor=tree_processor,
-    )
+    # Splits without a test fold (e.g. the pilot fold-swap) leave test_df empty;
+    # the test set only feeds a final trainer.test() metric, so skip it rather than
+    # crashing the featurizer on an empty list.
+    test_dataset = None
+    if len(test_df) > 0:
+        test_dataset = dag_data.GenDataset(
+            test_df,
+            magma_h5=magma_tree_path,
+            magma_map=name_to_json,
+            num_workers=num_workers,
+            tree_processor=tree_processor,
+        )
 
     # Define dataloaders
     collate_fn = train_dataset.get_collate_fn()
@@ -215,15 +220,17 @@ def train_model():
         persistent_workers=persistent_workers,
         multiprocessing_context=mp_contex,
     )
-    test_loader = DataLoader(
-        test_dataset,
-        num_workers=kwargs["num_workers"],
-        collate_fn=collate_fn,
-        shuffle=False,
-        batch_size=kwargs["batch_size"],
-        persistent_workers=persistent_workers,
-        multiprocessing_context=mp_contex,
-    )
+    test_loader = None
+    if test_dataset is not None:
+        test_loader = DataLoader(
+            test_dataset,
+            num_workers=kwargs["num_workers"],
+            collate_fn=collate_fn,
+            shuffle=False,
+            batch_size=kwargs["batch_size"],
+            persistent_workers=persistent_workers,
+            multiprocessing_context=mp_contex,
+        )
 
     # Define model
     model = gen_model.FragGNN(
@@ -327,7 +334,8 @@ def train_model():
     )
 
     model.eval()
-    trainer.test(model=model, dataloaders=test_loader)
+    if test_loader is not None:
+        trainer.test(model=model, dataloaders=test_loader)
 
 
 if __name__ == "__main__":
