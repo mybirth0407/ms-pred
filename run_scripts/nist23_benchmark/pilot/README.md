@@ -72,7 +72,7 @@ Filled in after eval completes.
 | Model | cosine | entropy | coverage |
 |---|---:|---:|---:|
 | GLACIER (pilot) | _pending_ | _pending_ | _pending_ |
-| ICEBERG (pilot) | _pending_ | _pending_ | _pending_ |
+| ICEBERG (pilot) | 0.6730 | 0.6207 | 0.8051 |
 | MassFormer (pilot) | 0.4954 | 0.4748 | 0.7229 |
 
 Compare pilot-to-pilot only; the published scaffold_1-test baselines (GLACIER 0.800 /
