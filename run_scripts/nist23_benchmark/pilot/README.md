@@ -58,6 +58,10 @@ writing `results/<model>_nist23/pilot_rnd1/preds_val/pred_eval.yaml`.
 - GLACIER is single-GPU (avoids the multi-GPU RAM-OOM / lr-scheduler gotchas).
 - Predict scripts take `--checkpoint-pth` (the repo's `0X_predict.py` drivers pass the old
   `--checkpoint` and are stale).
+- Two code fixes were needed for the no-test-fold pilot (both no-ops for normal splits):
+  train scripts skip the test dataset when the split has no test fold; `spec_pred_eval.py`
+  reads MassFormer's PredSpecDB binned output (3-tuple `get_all_specs`, `binned_spec`
+  instead of `intens`, CE taken from the per-CE MassSpec rather than parsed from the name).
 - Val eval is at **spec level** (all CEs of the 4,971 val specs). To match the pilot's exact
   6,000 (spec, CE) records instead, filter with `pilot_keys_val.txt`.
 
@@ -69,7 +73,7 @@ Filled in after eval completes.
 |---|---:|---:|---:|
 | GLACIER (pilot) | _pending_ | _pending_ | _pending_ |
 | ICEBERG (pilot) | _pending_ | _pending_ | _pending_ |
-| MassFormer (pilot) | _pending_ | _pending_ | _pending_ |
+| MassFormer (pilot) | 0.4954 | 0.4748 | 0.7229 |
 
 Compare pilot-to-pilot only; the published scaffold_1-test baselines (GLACIER 0.800 /
 ICEBERG 0.722 / MassFormer 0.512) are a different set and not directly comparable.

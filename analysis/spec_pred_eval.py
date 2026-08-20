@@ -177,15 +177,29 @@ def _load_predictions(binned_pred_file, data_df):
     # --- HDF5: try PredSpecDB (fragment models) first ---
     try:
         pred_specs = common.PredSpecDB(h5_path=binned_pred_file, mode="r")
-        for spec_id, spec_data2 in pred_specs.get_all_specs():
+        for spec_tuple in pred_specs.get_all_specs():
+            # get_all_specs yields (name, composite) or, when a per-spec remark is
+            # stored (e.g. MassFormer writes the inchikey), (name, remark, composite).
+            spec_id, spec_data2 = spec_tuple[0], spec_tuple[-1]
             for _spec_id2, spec_data in spec_data2.items():
                 cur_upper = int(_get_spec_meta_value(spec_data, "upper_limit"))
                 cur_bins = int(_get_spec_meta_value(spec_data, "num_bins"))
                 if upper_limit is None:
                     upper_limit, num_bins = cur_upper, cur_bins
                 name = common.rm_collision_str(spec_id)
-                ce = common.get_collision_energy(spec_id)
-                pred_spec_ars.append(spec_data["intens"][:])
+                # Binned models (MassFormer) group CEs under one base-name composite,
+                # so the CE lives on the per-CE MassSpec, not in spec_id; read it from
+                # the spec and only fall back to parsing spec_id (fragment layout).
+                ce = getattr(spec_data, "collision_energy", None)
+                if ce is None:
+                    ce = common.get_collision_energy(spec_id)
+                # Fragment models store binned intensities under "intens"; binned
+                # models (MassFormer) store them under "binned_spec".
+                if getattr(spec_data, "has_intens", False):
+                    binned = spec_data["intens"][:]
+                else:
+                    binned = spec_data["binned_spec"][:]
+                pred_spec_ars.append(binned)
                 pred_smiles.append(spec_data["root_canonical_smiles"])
                 pred_spec_names.append(name + f"_collision {float(ce):.0f}")
                 collision_energies.append(ce)
