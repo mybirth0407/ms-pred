@@ -81,40 +81,68 @@ ICEBERG inten (1-cos)	17	val	0.328553
 ICEBERG inten (1-cos)	18	val	0.327114
 ICEBERG inten (1-cos)	19	val	0.328683
 ICEBERG inten (1-cos)	20	val	0.326890
-GLACIER joint (ongoing)	0	train	0.867218
-GLACIER joint (ongoing)	1	train	0.658598
-GLACIER joint (ongoing)	2	train	0.545339
-GLACIER joint (ongoing)	3	train	0.453517
-GLACIER joint (ongoing)	4	train	0.399225
-GLACIER joint (ongoing)	5	train	0.336935
-GLACIER joint (ongoing)	6	train	0.303614
-GLACIER joint (ongoing)	7	train	0.271414
-GLACIER joint (ongoing)	8	train	0.238902
-GLACIER joint (ongoing)	9	train	0.222599
-GLACIER joint (ongoing)	10	train	0.209740
-GLACIER joint (ongoing)	11	train	0.189706
-GLACIER joint (ongoing)	12	train	0.176196
-GLACIER joint (ongoing)	13	train	0.169778
-GLACIER joint (ongoing)	14	train	0.168793
-GLACIER joint (ongoing)	15	train	0.159158
-GLACIER joint (ongoing)	16	train	0.143510
-GLACIER joint (ongoing)	17	train	0.139913
-GLACIER joint (ongoing)	18	train	0.132835
-GLACIER joint (ongoing)	0	val	0.486652
-GLACIER joint (ongoing)	1	val	0.393568
-GLACIER joint (ongoing)	2	val	0.351513
-GLACIER joint (ongoing)	3	val	0.333027
-GLACIER joint (ongoing)	4	val	0.316555
-GLACIER joint (ongoing)	5	val	0.302722
-GLACIER joint (ongoing)	6	val	0.300019
-GLACIER joint (ongoing)	7	val	0.299133
-GLACIER joint (ongoing)	8	val	0.293709
-GLACIER joint (ongoing)	9	val	0.284341
-GLACIER joint (ongoing)	10	val	0.282240
-GLACIER joint (ongoing)	11	val	0.281186
-GLACIER joint (ongoing)	12	val	0.279424
-GLACIER joint (ongoing)	13	val	0.277052
-GLACIER joint (ongoing)	14	val	0.276165
-GLACIER joint (ongoing)	15	val	0.275118
-GLACIER joint (ongoing)	16	val	0.275460
-GLACIER joint (ongoing)	17	val	0.274140
+GLACIER joint	0	train	0.867218
+GLACIER joint	1	train	0.658598
+GLACIER joint	2	train	0.545339
+GLACIER joint	3	train	0.453517
+GLACIER joint	4	train	0.399225
+GLACIER joint	5	train	0.336935
+GLACIER joint	6	train	0.303614
+GLACIER joint	7	train	0.271414
+GLACIER joint	8	train	0.238902
+GLACIER joint	9	train	0.222599
+GLACIER joint	10	train	0.209740
+GLACIER joint	11	train	0.189706
+GLACIER joint	12	train	0.176196
+GLACIER joint	13	train	0.169778
+GLACIER joint	14	train	0.168793
+GLACIER joint	15	train	0.159158
+GLACIER joint	16	train	0.143510
+GLACIER joint	17	train	0.139913
+GLACIER joint	18	train	0.135636
+GLACIER joint	19	train	0.137168
+GLACIER joint	20	train	0.136605
+GLACIER joint	21	train	0.130851
+GLACIER joint	22	train	0.131946
+GLACIER joint	23	train	0.131174
+GLACIER joint	24	train	0.130584
+GLACIER joint	25	train	0.127039
+GLACIER joint	26	train	0.124820
+GLACIER joint	27	train	0.125153
+GLACIER joint	28	train	0.120905
+GLACIER joint	29	train	0.120022
+GLACIER joint	30	train	0.123391
+GLACIER joint	31	train	0.121006
+GLACIER joint	32	train	0.121271
+GLACIER joint	0	val	0.486652
+GLACIER joint	1	val	0.393568
+GLACIER joint	2	val	0.351513
+GLACIER joint	3	val	0.333027
+GLACIER joint	4	val	0.316555
+GLACIER joint	5	val	0.302722
+GLACIER joint	6	val	0.300019
+GLACIER joint	7	val	0.299133
+GLACIER joint	8	val	0.293709
+GLACIER joint	9	val	0.284341
+GLACIER joint	10	val	0.282240
+GLACIER joint	11	val	0.281186
+GLACIER joint	12	val	0.279424
+GLACIER joint	13	val	0.277052
+GLACIER joint	14	val	0.276165
+GLACIER joint	15	val	0.275118
+GLACIER joint	16	val	0.275460
+GLACIER joint	17	val	0.274140
+GLACIER joint	18	val	0.275270
+GLACIER joint	19	val	0.272757
+GLACIER joint	20	val	0.271562
+GLACIER joint	21	val	0.272163
+GLACIER joint	22	val	0.271282
+GLACIER joint	23	val	0.271087
+GLACIER joint	24	val	0.272151
+GLACIER joint	25	val	0.271660
+GLACIER joint	26	val	0.272149
+GLACIER joint	27	val	0.271021
+GLACIER joint	28	val	0.271730
+GLACIER joint	29	val	0.271360
+GLACIER joint	30	val	0.271563
+GLACIER joint	31	val	0.270958

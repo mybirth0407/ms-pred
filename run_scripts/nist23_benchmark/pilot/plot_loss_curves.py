@@ -38,12 +38,12 @@ PNG = HERE / "pilot_loss_curves.png"
 
 # label -> (log basename, colour, marker)
 MODELS = {
-    "MassFormer (1-cos)":      ("massformer_pilot.log", "#d95f02", "o"),
-    "ICEBERG inten (1-cos)":   ("iceberg_pilot.log",    "#1b9e77", "s"),
-    "GLACIER joint (ongoing)": ("glacier_pilot.log",    "#7570b3", "^"),
+    "MassFormer (1-cos)":    ("massformer_pilot.log", "#d95f02", "o"),
+    "ICEBERG inten (1-cos)": ("iceberg_pilot.log",    "#1b9e77", "s"),
+    "GLACIER joint":         ("glacier_pilot.log",    "#7570b3", "^"),
 }
 FINAL_COS = {"MassFormer (1-cos)": 0.4954, "ICEBERG inten (1-cos)": 0.6730,
-             "GLACIER joint (ongoing)": None}
+             "GLACIER joint": 0.7282}
 
 _VAL = re.compile(r"Epoch (\d+), step \d+-- val_loss : ([0-9.]+)")
 _TRAIN_STEP = re.compile(r"Epoch (\d+), step \d+-- train_loss : ([0-9.]+)")

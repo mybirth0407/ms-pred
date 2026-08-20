@@ -69,11 +69,33 @@ writing `results/<model>_nist23/pilot_rnd1/preds_val/pred_eval.yaml`.
 
 Filled in after eval completes.
 
+Metric = **cos@100** (`--max-peaks 100 --min-inten 0`): the prediction is truncated to its
+top-100 peaks before scoring, matching the published benchmark convention.
+
 | Model | cosine | entropy | coverage |
 |---|---:|---:|---:|
-| GLACIER (pilot) | _pending_ | _pending_ | _pending_ |
+| GLACIER (pilot) | **0.7282** | 0.6801 | 0.8418 |
 | ICEBERG (pilot) | 0.6730 | 0.6207 | 0.8051 |
 | MassFormer (pilot) | 0.4954 | 0.4748 | 0.7229 |
+
+Ranking GLACIER > ICEBERG > MassFormer matches the full-train benchmark ordering. GLACIER was
+early-stopped at epoch 31 (val loss plateaued at ~0.271; it kept ticking noise-level new bests,
+so training was cut once converged).
+
+### cos@20 vs cos@100
+
+Same predictions re-scored with the prediction truncated to its top-20 peaks:
+
+| Model | cos@20 | cos@100 | entropy@20 | coverage@20 |
+|---|---:|---:|---:|---:|
+| GLACIER (pilot) | 0.7120 | 0.7282 | 0.6651 | 0.6168 |
+| ICEBERG (pilot) | 0.6564 | 0.6730 | 0.6099 | 0.5644 |
+| MassFormer (pilot) | 0.4734 | 0.4954 | 0.4528 | 0.4521 |
+
+All three score slightly lower at @20 than @100 (the true spectrum is used in full, so keeping
+more predicted peaks matches more of it); the model ranking is unchanged. Coverage drops sharply
+at @20 because 20 predicted peaks cover fewer of the true peaks. Regenerate any @k with
+`python analysis/spec_pred_eval.py --binned-pred-file <.../preds_val/binned_preds.hdf5> --max-peaks <k> --min-inten 0 --formula-dir-name no_subform.hdf5 --dataset nist23`.
 
 Compare pilot-to-pilot only; the published scaffold_1-test baselines (GLACIER 0.800 /
 ICEBERG 0.722 / MassFormer 0.512) are a different set and not directly comparable.
@@ -94,5 +116,5 @@ Per-epoch **train (dashed) vs validation (solid)** loss, one colour per model
 - The train–val gap is the generalization gap (train < val): MassFormer 0.21 vs 0.50, ICEBERG
   0.15 vs 0.33. **GLACIER's train loss is the full joint objective** (intensity + 0.1·fragment,
   magma-blended) while its **val loss is the hungarian intensity cos** — different quantities, so
-  GLACIER's train/val gap is not a like-for-like generalization gap. GLACIER is still training in
-  this snapshot — refresh after it finishes.
+  GLACIER's train/val gap is not a like-for-like generalization gap. GLACIER was early-stopped at
+  epoch 31 (val loss plateaued at ~0.271).
