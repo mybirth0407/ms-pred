@@ -64,8 +64,14 @@ def get_args():
     p.add_argument("--dataset", default="nist23",
                    help="used to default --magma-tree and --gold paths")
     p.add_argument("--magma-tree", default=None,
-                   help="MAGMa enumeration PredSpecDB (default: "
-                        "data/spec_datasets/<dataset>/magma_outputs/magma_tree.hdf5)")
+                   help="fragment-set PredSpecDB (default: "
+                        "data/spec_datasets/<dataset>/magma_outputs/magma_tree.hdf5). "
+                        "Point this at a model's stage-1 tree_preds.hdf5 to get that "
+                        "model's OWN stage-1 upper bound (the predicted DAG) instead of "
+                        "the true-MAGMa bound.")
+    p.add_argument("--dag-name-prefix", default="",
+                   help="prefix the DAG stores on spec names relative to the eval yaml "
+                        "(e.g. 'pred_' for ICEBERG stage-1 tree_preds.hdf5)")
     p.add_argument("--gold", default=None,
                    help="full true spectra (default: "
                         "data/spec_datasets/<dataset>/subformulae/no_subform.hdf5)")
@@ -158,10 +164,11 @@ def main():
     t0 = time.time()
 
     for spec, entries in spec_to_entries.items():
-        if spec not in magma_names:
+        dag_spec = a.dag_name_prefix + spec
+        if dag_spec not in magma_names:
             miss_magma += len(entries); continue
-        ces, remarks = mdb.get_entries(spec)
-        ms = mdb.read(spec, ces[0], remarks[0] if remarks else None)
+        ces, remarks = mdb.get_entries(dag_spec)
+        ms = mdb.read(dag_spec, ces[0], remarks[0] if remarks else None)
         masks = reachable_masks(ms)
         for name in entries:
             gkey = f"{name}.json"
