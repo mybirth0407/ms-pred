@@ -249,9 +249,8 @@ def main(args):
     name_to_ion = dict(data_df[["spec", "ionization"]].values)
 
     binned_pred_file = Path(args.binned_pred_file)
-    outfile = args.outfile
-    if outfile is None:
-        outfile = binned_pred_file.parent / "pred_eval.yaml"
+    outfile = Path(args.outfile) if args.outfile is not None else (
+        binned_pred_file.parent / "pred_eval.yaml")
     outfile_grouped_template = str(outfile.parent / "pred_eval_grouped_{}.tsv")
 
     (

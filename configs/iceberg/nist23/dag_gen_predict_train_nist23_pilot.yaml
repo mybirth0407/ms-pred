@@ -2,12 +2,14 @@
 # Predicts fragment DAGs for all pilot specs (train+val folds) using the pilot gen ckpt,
 # so stage-2 has intensity targets and the val fold has DAGs for final eval.
 # Reads:  results/iceberg_nist23/pilot_rnd1/ckpt/gen/best.ckpt
-# Writes: results/iceberg_nist23/pilot_rnd1/preds_train_100/tree_preds.hdf5. GPU 6,7.
+# Writes: results/iceberg_nist23/pilot_rnd1/preds_train_100/tree_preds.hdf5. GPU 6.
+# Single GPU: the multi-GPU worker path hit a CUDA "illegal memory access" in the
+# random-walk PE sparse coalesce; one device sidesteps it and 22k specs is fast enough.
 launcher_args: {experiment_name: iceberg_nist23,
   script_name: "src/ms_pred/iceberg/predict_gen.py",
   slurm_script: launcher_scripts/generic_slurm.sh,
   launch_method: local,
-  visible_devices: [6, 7],
+  visible_devices: [6],
 }
 universal_args:
   _slurm_args:
@@ -18,7 +20,7 @@ universal_args:
 
   batch-size: [96]
   dataset-name: [nist23]
-  num-gpu-workers: [4]
+  num-gpu-workers: [2]
   num-cpu-workers: [32]
   threshold: [0.0]
   max-nodes: [100]

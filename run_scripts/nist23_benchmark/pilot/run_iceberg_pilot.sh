@@ -17,25 +17,43 @@ EVAL_SPLIT=pilot_swapped_scaffold_1_valeval
 RES=results/iceberg_nist23/pilot_rnd1
 CFG=configs/iceberg/nist23
 
-echo "[iceberg pilot] 1/5 GEN TRAIN start $(date '+%F %T')"
-python launcher_scripts/run_from_config.py $CFG/dag_train_nist23_pilot.yaml
-[ -f "$RES/ckpt/gen/best.ckpt" ] || { echo "[iceberg pilot] FAIL: no gen ckpt"; exit 1; }
+# Each stage is guarded on its output so a re-run resumes instead of repeating the
+# ~2h gen training (or any completed stage).
+if [ -f "$RES/ckpt/gen/best.ckpt" ]; then
+  echo "[iceberg pilot] 1/5 GEN TRAIN skip (ckpt exists) $(date '+%F %T')"
+else
+  echo "[iceberg pilot] 1/5 GEN TRAIN start $(date '+%F %T')"
+  python launcher_scripts/run_from_config.py $CFG/dag_train_nist23_pilot.yaml
+  [ -f "$RES/ckpt/gen/best.ckpt" ] || { echo "[iceberg pilot] FAIL: no gen ckpt"; exit 1; }
+fi
 
-echo "[iceberg pilot] 2/5 GEN SELF-PREDICT start $(date '+%F %T')"
-python launcher_scripts/run_from_config.py $CFG/dag_gen_predict_train_nist23_pilot.yaml
-[ -f "$RES/preds_train_100/tree_preds.hdf5" ] || { echo "[iceberg pilot] FAIL: no tree_preds"; exit 1; }
+if [ -f "$RES/preds_train_100/tree_preds.hdf5" ]; then
+  echo "[iceberg pilot] 2/5 GEN SELF-PREDICT skip (exists) $(date '+%F %T')"
+else
+  echo "[iceberg pilot] 2/5 GEN SELF-PREDICT start $(date '+%F %T')"
+  python launcher_scripts/run_from_config.py $CFG/dag_gen_predict_train_nist23_pilot.yaml
+  [ -f "$RES/preds_train_100/tree_preds.hdf5" ] || { echo "[iceberg pilot] FAIL: no tree_preds"; exit 1; }
+fi
 
-echo "[iceberg pilot] 3/5 ADD DAG INTENS start $(date '+%F %T')"
-python data_scripts/dag/add_dag_intens.py \
-  --pred-dag-path  "$RES/preds_train_100/tree_preds.hdf5" \
-  --true-dag-path  data/spec_datasets/nist23/subformulae/no_subform.hdf5 \
-  --out-dag-path   "$RES/preds_train_100_inten.hdf5" \
-  --num-workers 32
-[ -f "$RES/preds_train_100_inten.hdf5" ] || { echo "[iceberg pilot] FAIL: no inten dag"; exit 1; }
+if [ -f "$RES/preds_train_100_inten.hdf5" ]; then
+  echo "[iceberg pilot] 3/5 ADD DAG INTENS skip (exists) $(date '+%F %T')"
+else
+  echo "[iceberg pilot] 3/5 ADD DAG INTENS start $(date '+%F %T')"
+  python data_scripts/dag/add_dag_intens.py \
+    --pred-dag-path  "$RES/preds_train_100/tree_preds.hdf5" \
+    --true-dag-path  data/spec_datasets/nist23/subformulae/no_subform.hdf5 \
+    --out-dag-path   "$RES/preds_train_100_inten.hdf5" \
+    --num-workers 32
+  [ -f "$RES/preds_train_100_inten.hdf5" ] || { echo "[iceberg pilot] FAIL: no inten dag"; exit 1; }
+fi
 
-echo "[iceberg pilot] 4/5 INTEN TRAIN start $(date '+%F %T')"
-python launcher_scripts/run_from_config.py $CFG/dag_inten_train_nist23_pilot.yaml
-[ -f "$RES/ckpt/inten/best.ckpt" ] || { echo "[iceberg pilot] FAIL: no inten ckpt"; exit 1; }
+if [ -f "$RES/ckpt/inten/best.ckpt" ]; then
+  echo "[iceberg pilot] 4/5 INTEN TRAIN skip (ckpt exists) $(date '+%F %T')"
+else
+  echo "[iceberg pilot] 4/5 INTEN TRAIN start $(date '+%F %T')"
+  python launcher_scripts/run_from_config.py $CFG/dag_inten_train_nist23_pilot.yaml
+  [ -f "$RES/ckpt/inten/best.ckpt" ] || { echo "[iceberg pilot] FAIL: no inten ckpt"; exit 1; }
+fi
 
 echo "[iceberg pilot] 5/5 PREDICT VAL + EVAL start $(date '+%F %T')"
 SAVE=$RES/preds_val
