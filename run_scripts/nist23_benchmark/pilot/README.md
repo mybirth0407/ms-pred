@@ -80,14 +80,19 @@ ICEBERG 0.722 / MassFormer 0.512) are a different set and not directly comparabl
 
 ## Training curves
 
-Per-epoch validation loss (all cosine-based, lower = better):
+Per-epoch **train (dashed) vs validation (solid)** loss, one colour per model
+(cosine-based, lower = better):
 
-![pilot validation-loss curves](pilot_loss_curves.png)
+![pilot train/val loss curves](pilot_loss_curves.png)
 
-- Data: `pilot_val_loss.tsv` (small, version-controlled). Figure: `plot_loss_curves.py`.
-- Regenerate the figure from the TSV: `python plot_loss_curves.py`
+- Data: `pilot_val_loss.tsv` (small, version-controlled; columns `model, epoch, split, loss`).
+  Figure: `plot_loss_curves.py`.
+- Regenerate from the TSV: `python plot_loss_curves.py`
   Re-extract from training stdout logs: `python plot_loss_curves.py --logs <dir-with-{model}_pilot.log>`
 - MassFormer / ICEBERG(inten) losses are `1-cos` on the binned spectrum, so the right axis
-  (`1-loss`) tracks the held-out cos@100 closely (MassFormer 0.502→0.4954, ICEBERG 0.327→0.6730).
-  GLACIER's curve is the joint (intensity + fragment) val loss and, in this snapshot, is still
-  training — refresh after it finishes.
+  (`1-loss`) tracks the held-out cos@100 closely (val: MassFormer 0.502→0.4954, ICEBERG 0.327→0.6730).
+- The train–val gap is the generalization gap (train < val): MassFormer 0.21 vs 0.50, ICEBERG
+  0.15 vs 0.33. **GLACIER's train loss is the full joint objective** (intensity + 0.1·fragment,
+  magma-blended) while its **val loss is the hungarian intensity cos** — different quantities, so
+  GLACIER's train/val gap is not a like-for-like generalization gap. GLACIER is still training in
+  this snapshot — refresh after it finishes.

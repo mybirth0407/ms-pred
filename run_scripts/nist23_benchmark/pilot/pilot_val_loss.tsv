@@ -1,59 +1,120 @@
-model	epoch	val_loss
-MassFormer (1-cos)	0	0.635078
-MassFormer (1-cos)	1	0.561546
-MassFormer (1-cos)	2	0.539210
-MassFormer (1-cos)	3	0.540775
-MassFormer (1-cos)	4	0.526187
-MassFormer (1-cos)	5	0.519526
-MassFormer (1-cos)	6	0.517795
-MassFormer (1-cos)	7	0.512884
-MassFormer (1-cos)	8	0.514474
-MassFormer (1-cos)	9	0.511243
-MassFormer (1-cos)	10	0.512751
-MassFormer (1-cos)	11	0.511279
-MassFormer (1-cos)	12	0.510039
-MassFormer (1-cos)	13	0.506883
-MassFormer (1-cos)	14	0.508813
-MassFormer (1-cos)	15	0.507549
-MassFormer (1-cos)	16	0.503760
-MassFormer (1-cos)	17	0.503046
-MassFormer (1-cos)	18	0.502659
-MassFormer (1-cos)	19	0.502360
-ICEBERG inten (1-cos)	0	0.414114
-ICEBERG inten (1-cos)	1	0.379466
-ICEBERG inten (1-cos)	2	0.361869
-ICEBERG inten (1-cos)	3	0.350385
-ICEBERG inten (1-cos)	4	0.343680
-ICEBERG inten (1-cos)	5	0.341493
-ICEBERG inten (1-cos)	6	0.338776
-ICEBERG inten (1-cos)	7	0.331751
-ICEBERG inten (1-cos)	8	0.332166
-ICEBERG inten (1-cos)	9	0.329237
-ICEBERG inten (1-cos)	10	0.329560
-ICEBERG inten (1-cos)	11	0.328584
-ICEBERG inten (1-cos)	12	0.326592
-ICEBERG inten (1-cos)	13	0.326637
-ICEBERG inten (1-cos)	14	0.328494
-ICEBERG inten (1-cos)	15	0.326288
-ICEBERG inten (1-cos)	16	0.327718
-ICEBERG inten (1-cos)	17	0.328553
-ICEBERG inten (1-cos)	18	0.327114
-ICEBERG inten (1-cos)	19	0.328683
-ICEBERG inten (1-cos)	20	0.326890
-GLACIER joint (ongoing)	0	0.486652
-GLACIER joint (ongoing)	1	0.393568
-GLACIER joint (ongoing)	2	0.351513
-GLACIER joint (ongoing)	3	0.333027
-GLACIER joint (ongoing)	4	0.316555
-GLACIER joint (ongoing)	5	0.302722
-GLACIER joint (ongoing)	6	0.300019
-GLACIER joint (ongoing)	7	0.299133
-GLACIER joint (ongoing)	8	0.293709
-GLACIER joint (ongoing)	9	0.284341
-GLACIER joint (ongoing)	10	0.282240
-GLACIER joint (ongoing)	11	0.281186
-GLACIER joint (ongoing)	12	0.279424
-GLACIER joint (ongoing)	13	0.277052
-GLACIER joint (ongoing)	14	0.276165
-GLACIER joint (ongoing)	15	0.275118
-GLACIER joint (ongoing)	16	0.275460
+model	epoch	split	loss
+MassFormer (1-cos)	0	train	0.740546
+MassFormer (1-cos)	1	train	0.571288
+MassFormer (1-cos)	2	train	0.468606
+MassFormer (1-cos)	3	train	0.396115
+MassFormer (1-cos)	4	train	0.369394
+MassFormer (1-cos)	5	train	0.335197
+MassFormer (1-cos)	6	train	0.326289
+MassFormer (1-cos)	7	train	0.303653
+MassFormer (1-cos)	8	train	0.283899
+MassFormer (1-cos)	9	train	0.287204
+MassFormer (1-cos)	10	train	0.269399
+MassFormer (1-cos)	11	train	0.258082
+MassFormer (1-cos)	12	train	0.247008
+MassFormer (1-cos)	13	train	0.244845
+MassFormer (1-cos)	14	train	0.235644
+MassFormer (1-cos)	15	train	0.231454
+MassFormer (1-cos)	16	train	0.233990
+MassFormer (1-cos)	17	train	0.222132
+MassFormer (1-cos)	18	train	0.217776
+MassFormer (1-cos)	19	train	0.210592
+MassFormer (1-cos)	0	val	0.635078
+MassFormer (1-cos)	1	val	0.561546
+MassFormer (1-cos)	2	val	0.539210
+MassFormer (1-cos)	3	val	0.540775
+MassFormer (1-cos)	4	val	0.526187
+MassFormer (1-cos)	5	val	0.519526
+MassFormer (1-cos)	6	val	0.517795
+MassFormer (1-cos)	7	val	0.512884
+MassFormer (1-cos)	8	val	0.514474
+MassFormer (1-cos)	9	val	0.511243
+MassFormer (1-cos)	10	val	0.512751
+MassFormer (1-cos)	11	val	0.511279
+MassFormer (1-cos)	12	val	0.510039
+MassFormer (1-cos)	13	val	0.506883
+MassFormer (1-cos)	14	val	0.508813
+MassFormer (1-cos)	15	val	0.507549
+MassFormer (1-cos)	16	val	0.503760
+MassFormer (1-cos)	17	val	0.503046
+MassFormer (1-cos)	18	val	0.502659
+MassFormer (1-cos)	19	val	0.502360
+ICEBERG inten (1-cos)	0	train	0.490021
+ICEBERG inten (1-cos)	1	train	0.391519
+ICEBERG inten (1-cos)	2	train	0.348116
+ICEBERG inten (1-cos)	3	train	0.319029
+ICEBERG inten (1-cos)	4	train	0.296904
+ICEBERG inten (1-cos)	5	train	0.274141
+ICEBERG inten (1-cos)	6	train	0.256151
+ICEBERG inten (1-cos)	7	train	0.241434
+ICEBERG inten (1-cos)	8	train	0.226460
+ICEBERG inten (1-cos)	9	train	0.214124
+ICEBERG inten (1-cos)	10	train	0.204094
+ICEBERG inten (1-cos)	11	train	0.194583
+ICEBERG inten (1-cos)	12	train	0.186407
+ICEBERG inten (1-cos)	13	train	0.180102
+ICEBERG inten (1-cos)	14	train	0.173633
+ICEBERG inten (1-cos)	15	train	0.168365
+ICEBERG inten (1-cos)	16	train	0.164149
+ICEBERG inten (1-cos)	17	train	0.159780
+ICEBERG inten (1-cos)	18	train	0.156271
+ICEBERG inten (1-cos)	19	train	0.153488
+ICEBERG inten (1-cos)	20	train	0.150825
+ICEBERG inten (1-cos)	0	val	0.414114
+ICEBERG inten (1-cos)	1	val	0.379466
+ICEBERG inten (1-cos)	2	val	0.361869
+ICEBERG inten (1-cos)	3	val	0.350385
+ICEBERG inten (1-cos)	4	val	0.343680
+ICEBERG inten (1-cos)	5	val	0.341493
+ICEBERG inten (1-cos)	6	val	0.338776
+ICEBERG inten (1-cos)	7	val	0.331751
+ICEBERG inten (1-cos)	8	val	0.332166
+ICEBERG inten (1-cos)	9	val	0.329237
+ICEBERG inten (1-cos)	10	val	0.329560
+ICEBERG inten (1-cos)	11	val	0.328584
+ICEBERG inten (1-cos)	12	val	0.326592
+ICEBERG inten (1-cos)	13	val	0.326637
+ICEBERG inten (1-cos)	14	val	0.328494
+ICEBERG inten (1-cos)	15	val	0.326288
+ICEBERG inten (1-cos)	16	val	0.327718
+ICEBERG inten (1-cos)	17	val	0.328553
+ICEBERG inten (1-cos)	18	val	0.327114
+ICEBERG inten (1-cos)	19	val	0.328683
+ICEBERG inten (1-cos)	20	val	0.326890
+GLACIER joint (ongoing)	0	train	0.867218
+GLACIER joint (ongoing)	1	train	0.658598
+GLACIER joint (ongoing)	2	train	0.545339
+GLACIER joint (ongoing)	3	train	0.453517
+GLACIER joint (ongoing)	4	train	0.399225
+GLACIER joint (ongoing)	5	train	0.336935
+GLACIER joint (ongoing)	6	train	0.303614
+GLACIER joint (ongoing)	7	train	0.271414
+GLACIER joint (ongoing)	8	train	0.238902
+GLACIER joint (ongoing)	9	train	0.222599
+GLACIER joint (ongoing)	10	train	0.209740
+GLACIER joint (ongoing)	11	train	0.189706
+GLACIER joint (ongoing)	12	train	0.176196
+GLACIER joint (ongoing)	13	train	0.169778
+GLACIER joint (ongoing)	14	train	0.168793
+GLACIER joint (ongoing)	15	train	0.159158
+GLACIER joint (ongoing)	16	train	0.143510
+GLACIER joint (ongoing)	17	train	0.139913
+GLACIER joint (ongoing)	18	train	0.132835
+GLACIER joint (ongoing)	0	val	0.486652
+GLACIER joint (ongoing)	1	val	0.393568
+GLACIER joint (ongoing)	2	val	0.351513
+GLACIER joint (ongoing)	3	val	0.333027
+GLACIER joint (ongoing)	4	val	0.316555
+GLACIER joint (ongoing)	5	val	0.302722
+GLACIER joint (ongoing)	6	val	0.300019
+GLACIER joint (ongoing)	7	val	0.299133
+GLACIER joint (ongoing)	8	val	0.293709
+GLACIER joint (ongoing)	9	val	0.284341
+GLACIER joint (ongoing)	10	val	0.282240
+GLACIER joint (ongoing)	11	val	0.281186
+GLACIER joint (ongoing)	12	val	0.279424
+GLACIER joint (ongoing)	13	val	0.277052
+GLACIER joint (ongoing)	14	val	0.276165
+GLACIER joint (ongoing)	15	val	0.275118
+GLACIER joint (ongoing)	16	val	0.275460
+GLACIER joint (ongoing)	17	val	0.274140
