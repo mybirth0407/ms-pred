@@ -1,0 +1,59 @@
+model	epoch	val_loss
+MassFormer (1-cos)	0	0.635078
+MassFormer (1-cos)	1	0.561546
+MassFormer (1-cos)	2	0.539210
+MassFormer (1-cos)	3	0.540775
+MassFormer (1-cos)	4	0.526187
+MassFormer (1-cos)	5	0.519526
+MassFormer (1-cos)	6	0.517795
+MassFormer (1-cos)	7	0.512884
+MassFormer (1-cos)	8	0.514474
+MassFormer (1-cos)	9	0.511243
+MassFormer (1-cos)	10	0.512751
+MassFormer (1-cos)	11	0.511279
+MassFormer (1-cos)	12	0.510039
+MassFormer (1-cos)	13	0.506883
+MassFormer (1-cos)	14	0.508813
+MassFormer (1-cos)	15	0.507549
+MassFormer (1-cos)	16	0.503760
+MassFormer (1-cos)	17	0.503046
+MassFormer (1-cos)	18	0.502659
+MassFormer (1-cos)	19	0.502360
+ICEBERG inten (1-cos)	0	0.414114
+ICEBERG inten (1-cos)	1	0.379466
+ICEBERG inten (1-cos)	2	0.361869
+ICEBERG inten (1-cos)	3	0.350385
+ICEBERG inten (1-cos)	4	0.343680
+ICEBERG inten (1-cos)	5	0.341493
+ICEBERG inten (1-cos)	6	0.338776
+ICEBERG inten (1-cos)	7	0.331751
+ICEBERG inten (1-cos)	8	0.332166
+ICEBERG inten (1-cos)	9	0.329237
+ICEBERG inten (1-cos)	10	0.329560
+ICEBERG inten (1-cos)	11	0.328584
+ICEBERG inten (1-cos)	12	0.326592
+ICEBERG inten (1-cos)	13	0.326637
+ICEBERG inten (1-cos)	14	0.328494
+ICEBERG inten (1-cos)	15	0.326288
+ICEBERG inten (1-cos)	16	0.327718
+ICEBERG inten (1-cos)	17	0.328553
+ICEBERG inten (1-cos)	18	0.327114
+ICEBERG inten (1-cos)	19	0.328683
+ICEBERG inten (1-cos)	20	0.326890
+GLACIER joint (ongoing)	0	0.486652
+GLACIER joint (ongoing)	1	0.393568
+GLACIER joint (ongoing)	2	0.351513
+GLACIER joint (ongoing)	3	0.333027
+GLACIER joint (ongoing)	4	0.316555
+GLACIER joint (ongoing)	5	0.302722
+GLACIER joint (ongoing)	6	0.300019
+GLACIER joint (ongoing)	7	0.299133
+GLACIER joint (ongoing)	8	0.293709
+GLACIER joint (ongoing)	9	0.284341
+GLACIER joint (ongoing)	10	0.282240
+GLACIER joint (ongoing)	11	0.281186
+GLACIER joint (ongoing)	12	0.279424
+GLACIER joint (ongoing)	13	0.277052
+GLACIER joint (ongoing)	14	0.276165
+GLACIER joint (ongoing)	15	0.275118
+GLACIER joint (ongoing)	16	0.275460

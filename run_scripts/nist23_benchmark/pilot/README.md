@@ -77,3 +77,17 @@ Filled in after eval completes.
 
 Compare pilot-to-pilot only; the published scaffold_1-test baselines (GLACIER 0.800 /
 ICEBERG 0.722 / MassFormer 0.512) are a different set and not directly comparable.
+
+## Training curves
+
+Per-epoch validation loss (all cosine-based, lower = better):
+
+![pilot validation-loss curves](pilot_loss_curves.png)
+
+- Data: `pilot_val_loss.tsv` (small, version-controlled). Figure: `plot_loss_curves.py`.
+- Regenerate the figure from the TSV: `python plot_loss_curves.py`
+  Re-extract from training stdout logs: `python plot_loss_curves.py --logs <dir-with-{model}_pilot.log>`
+- MassFormer / ICEBERG(inten) losses are `1-cos` on the binned spectrum, so the right axis
+  (`1-loss`) tracks the held-out cos@100 closely (MassFormer 0.502→0.4954, ICEBERG 0.327→0.6730).
+  GLACIER's curve is the joint (intensity + fragment) val loss and, in this snapshot, is still
+  training — refresh after it finishes.
