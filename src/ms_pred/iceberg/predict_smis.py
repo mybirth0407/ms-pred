@@ -88,7 +88,7 @@ def predict():
     save_dir = Path(kwargs["save_dir"])
     debug = kwargs["debug"]
     common.setup_logger(save_dir, log_name="joint_pred.log", debug=debug)
-    # pl.utilities.seed.seed_everything(kwargs.get("seed"))
+    # pl.seed_everything(kwargs.get("seed"))
 
     # Dump args
     yaml_args = yaml.dump(kwargs)

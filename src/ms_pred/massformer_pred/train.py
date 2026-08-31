@@ -133,14 +133,19 @@ def train_model():
         upper_limit=upper_limit,
         form_dir_name=kwargs["form_dir_name"],
     )
-    test_dataset = massformer_data.BinnedDataset(
-        test_df,
-        data_dir=data_dir,
-        num_bins=num_bins,
-        num_workers=num_workers,
-        upper_limit=upper_limit,
-        form_dir_name=kwargs["form_dir_name"],
-    )
+    # Splits without a test fold (e.g. the pilot fold-swap) leave test_df empty;
+    # the test set is only used for a final trainer.test() metric we don't rely on,
+    # so skip it rather than crashing the featurizer on an empty list.
+    test_dataset = None
+    if len(test_df) > 0:
+        test_dataset = massformer_data.BinnedDataset(
+            test_df,
+            data_dir=data_dir,
+            num_bins=num_bins,
+            num_workers=num_workers,
+            upper_limit=upper_limit,
+            form_dir_name=kwargs["form_dir_name"],
+        )
 
     # Define dataloaders
     collate_fn = train_dataset.get_collate_fn()
@@ -158,13 +163,15 @@ def train_model():
         shuffle=False,
         batch_size=kwargs["batch_size"],
     )
-    test_loader = DataLoader(
-        test_dataset,
-        num_workers=kwargs["num_workers"],
-        collate_fn=collate_fn,
-        shuffle=False,
-        batch_size=kwargs["batch_size"],
-    )
+    test_loader = None
+    if test_dataset is not None:
+        test_loader = DataLoader(
+            test_dataset,
+            num_workers=kwargs["num_workers"],
+            collate_fn=collate_fn,
+            shuffle=False,
+            batch_size=kwargs["batch_size"],
+        )
 
     # Define model
     # test_batch = next(iter(train_loader))
@@ -242,7 +249,8 @@ def train_model():
         f"Loaded model with from {best_checkpoint} with val loss of {best_checkpoint_score}"
     )
     model.eval()
-    trainer.test(dataloaders=test_loader)
+    if test_loader is not None:
+        trainer.test(dataloaders=test_loader)
 
 
 if __name__ == "__main__":

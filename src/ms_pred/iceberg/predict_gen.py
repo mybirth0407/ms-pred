@@ -77,7 +77,7 @@ def predict():
     else:
         common.setup_logger(save_dir, log_name=f"dag_gen_pred_decoy{kwargs['num_decoys']}.log", debug=kwargs["debug"])
     try: 
-        pl.utilities.seed.seed_everything(kwargs.get("seed"))
+        pl.seed_everything(kwargs.get("seed"))
     except Exception as e:
         pl.seed_everything(kwargs.get("seed"))
 

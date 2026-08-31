@@ -115,7 +115,7 @@ def predict():
     debug = kwargs["debug"]
     common.setup_logger(save_dir, log_name="joint_pred.log", debug=debug)
     if pl.__version__.startswith("1"):
-        pl.utilities.seed.seed_everything(kwargs.get("seed"))
+        pl.seed_everything(kwargs.get("seed"))
     else: # simpler import...?
         pl.seed_everything(kwargs.get("seed"))
 

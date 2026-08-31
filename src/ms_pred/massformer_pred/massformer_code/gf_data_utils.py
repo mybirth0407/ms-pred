@@ -51,7 +51,9 @@ def atom_to_feature_vector(atom):
     """
     atom_feature = [
         safe_index(allowable_features["possible_atomic_num_list"], atom.GetAtomicNum()),
-        allowable_features["possible_chirality_list"].index(str(atom.GetChiralTag())),
+        # safe_index (not .index) so rdkit 2025.03+ chirality tags absent from the list
+        # (CHI_SQUAREPLANAR, CHI_OCTAHEDRAL, …) fall back to CHI_OTHER instead of raising.
+        safe_index(allowable_features["possible_chirality_list"], str(atom.GetChiralTag())),
         safe_index(allowable_features["possible_degree_list"], atom.GetTotalDegree()),
         safe_index(
             allowable_features["possible_formal_charge_list"], atom.GetFormalCharge()

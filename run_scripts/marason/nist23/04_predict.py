@@ -1,0 +1,67 @@
+"""MARASON NIST'23 — predict test spectra and evaluate spectrum accuracy.
+
+Runs the scaffold split (scaffold_1, seed 1) and writes
+preds/pred_eval.yaml via analysis/spec_pred_eval.py.
+
+Note: MARASON is retrieval-augmented. Prediction passes --add-ref with --ref-dir
+pointing at a closest-neighbour store (data/closest_neighbors/infinite for the random
+split, .../scaffold for the scaffold split). If that store is absent it is derived
+from the training set at run time; generating it up front is faster for repeated runs.
+"""
+from pathlib import Path
+import subprocess
+
+python_file = "src/ms_pred/marason/predict_inten.py"
+node_num = 100
+num_workers = 64
+devices = "0,1"
+test_entries = [
+    {"dataset": "nist23", "split": "scaffold_1", "folder": "scaffold_1_rnd1",
+     "ref_dir": "data/closest_neighbors/infinite/scaffold"},
+]
+
+for test_entry in test_entries:
+    split = test_entry["split"]
+    dataset = test_entry["dataset"]
+    folder = test_entry["folder"]
+    ref_dir = test_entry["ref_dir"]
+
+    base_formula_folder = Path(f"results/marason_{dataset}")
+    res_folder = Path(f"results/marason_{dataset}/")
+    model = res_folder / folder / "ckpt/inten/best.ckpt"
+    if not model.exists():
+        print(f"[skip] missing checkpoint: {model}")
+        continue
+
+    save_dir = res_folder / folder / "preds"
+    magma_dag_folder = base_formula_folder / folder / f"preds_train_{node_num}/tree_preds.hdf5"
+    inten_folder = base_formula_folder / folder / "preds_train_100_inten.hdf5"
+
+    cmd = f"""python {python_file} \\
+    --batch-size {num_workers} \\
+    --dataset-name {dataset} \\
+    --split-name {split}.tsv \\
+    --checkpoint-pth {model} \\
+    --save-dir {save_dir} \\
+    --gpu \\
+    --num-workers 0 \\
+    --magma-dag-folder {magma_dag_folder} \\
+    --inten-folder {inten_folder} \\
+    --subset-datasets test_only \\
+    --binned-out \\
+    --add-ref \\
+    --max-ref-count 3 \\
+    --ref-dir {ref_dir}"""
+    cmd = f"CUDA_VISIBLE_DEVICES={devices} {cmd}"
+    print(cmd + "\n")
+    subprocess.run(cmd, shell=True, check=True)
+
+    out_binned = save_dir / "binned_preds.hdf5"
+    eval_cmd = f"""python analysis/spec_pred_eval.py \\
+    --binned-pred-file {out_binned} \\
+    --max-peaks 100 \\
+    --min-inten 0 \\
+    --formula-dir-name no_subform.hdf5 \\
+    --dataset {dataset}"""
+    print(eval_cmd)
+    subprocess.run(eval_cmd, shell=True, check=True)

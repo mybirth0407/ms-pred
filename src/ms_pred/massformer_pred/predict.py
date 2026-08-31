@@ -30,6 +30,20 @@ def get_args():
     parser.add_argument("--gpu", default=False, action="store_true")
     parser.add_argument("--sparse-out", default=False, action="store_true")
     parser.add_argument("--sparse-k", default=100, action="store", type=int)
+    parser.add_argument(
+        "--num-bins", default=-1, action="store", type=int,
+        help="Binning resolution for stored spectra; -1 uses the model's output_dim.",
+    )
+    parser.add_argument(
+        "--upper-limit", default=-1, action="store", type=int,
+        help="Upper m/z limit for binning; -1 uses the model's upper_limit.",
+    )
+    parser.add_argument(
+        "--out-name", default="binned_preds.hdf5", action="store",
+        help="Output HDF5 filename written into --save-dir. Use e.g. "
+             "binned_preds_shard0.hdf5 for sharded parallel prediction (PredSpecDB "
+             "auto-merges sibling *_shard*.hdf5 files on read).",
+    )
     parser.add_argument("--num-workers", default=0, action="store", type=int)
     parser.add_argument("--batch-size", default=64, action="store", type=int)
     date = datetime.now().strftime("%Y_%m_%d")
@@ -57,8 +71,9 @@ def predict():
     sparse_k = kwargs["sparse_k"]
 
     save_dir = kwargs["save_dir"]
-    common.setup_logger(save_dir, log_name="massformer_pred.log", debug=kwargs["debug"])
-    pl.utilities.seed.seed_everything(kwargs.get("seed"))
+    log_name = Path(kwargs["out_name"]).stem + ".log"
+    common.setup_logger(save_dir, log_name=log_name, debug=kwargs["debug"])
+    pl.seed_everything(kwargs.get("seed"))
 
     # Dump args
     yaml_args = yaml.dump(kwargs)
@@ -115,11 +130,18 @@ def predict():
     device = torch.device(device)
     model = model.to(device)
 
-    out_file = Path(kwargs["save_dir"]) / "binned_preds.hdf5"
-    h5 = common.HDF5Dataset(out_file, mode='w')
-    h5.attrs['num_bins'] = model.output_dim
-    h5.attrs['upper_limit'] = model.upper_limit
-    h5.attrs['sparse_out'] = kwargs["sparse_out"]
+    num_bins = kwargs["num_bins"] if kwargs["num_bins"] > 0 else model.output_dim
+    upper_limit = kwargs["upper_limit"] if kwargs["upper_limit"] > 0 else model.upper_limit
+
+    out_file = Path(kwargs["save_dir"]) / kwargs["out_name"]
+    # Write via PredSpecDB (binned-only spectra) so downstream readers
+    # (analysis/spec_pred_eval.py, retrieval/retrieval_benchmark.py) can consume
+    # MassFormer predictions through the same code path as the fragment models.
+    specdb = common.PredSpecDB(
+        h5_path=out_file, mode="w",
+        has_probs=False, has_brokens=False, has_masses=False, has_masses_no_adduct=False,
+        has_frag_form_vecs=False, has_frags=False, has_intens=False, has_binned_spec=True,
+    )
     with torch.no_grad():
         for batch in tqdm(pred_loader):
             graphs, smiles, weights, adducts, collision_energies, norm_collision_energies = (
@@ -149,11 +171,24 @@ def predict():
 
             for spec_name, smi, collision_energy, out_spec in zip(spec_names, smiles, collision_energies, output_spec):
                 inchikey = common.inchikey_from_smiles(smi)
-                h5_name = f'pred_{spec_name}/ikey {inchikey}/collision {collision_energy}'
-                h5.write_data(h5_name + '/spec', out_spec)
-                h5.update_attr(h5_name, {'smiles': smi, 'ikey': inchikey, 'spec_name': spec_name})
+                ce = float(collision_energy)
+                if sparse_out:
+                    ms = common.MassSpec(
+                        collision_energy=ce, root_canonical_smiles=smi, adduct=None, remark=inchikey,
+                        binned_spec_sparse=(
+                            out_spec[:, 0].astype(np.uint32), out_spec[:, 1].astype(np.float32),
+                        ),
+                        num_bins=num_bins, upper_limit=upper_limit,
+                    )
+                else:
+                    ms = common.MassSpec(
+                        collision_energy=ce, root_canonical_smiles=smi, adduct=None, remark=inchikey,
+                        binned_spec=out_spec.astype(np.float32),
+                        num_bins=num_bins, upper_limit=upper_limit,
+                    )
+                specdb.write(spec_name, ms)
 
-    h5.close()
+    specdb.close()
 
 
 if __name__ == "__main__":

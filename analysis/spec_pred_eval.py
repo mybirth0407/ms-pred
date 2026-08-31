@@ -3,6 +3,7 @@
 Use to compare binned predictions to ground truth spec values
 
 """
+import ast
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -128,6 +129,114 @@ def _get_spec_meta_value(spec_data, key: str):
     raise KeyError(f"Could not find metadata field '{key}' in prediction entry")
 
 
+def _load_predictions(binned_pred_file, data_df):
+    """Load binned predictions, auto-detecting the writer's format.
+
+    Supports three prediction layouts that coexist in this repo:
+      * PredSpecDB HDF5 — fragment models (ICEBERG / SCARF / MARASON / GLACIER);
+      * legacy binned HDF5 — pred_<spec>/ikey <k>/collision <ce>/spec, with
+        per-collision `smiles`/`spec_name` attrs and file-level num_bins/upper_limit
+        (MassFormer, GrAFF-MS);
+      * pickle `.p` — dict of {preds, spec_names, smiles, num_bins, upper_limit}
+        for collision-agnostic baselines (3DMolMS); each prediction is compared
+        against every annotated collision energy of that spectrum.
+
+    Returns (pred_spec_ars, pred_smiles, pred_spec_names, collision_energies,
+    ion_types, num_bins, upper_limit).
+    """
+    binned_pred_file = Path(binned_pred_file)
+    name_to_ion = dict(data_df[["spec", "ionization"]].values)
+
+    pred_spec_ars, pred_smiles, pred_spec_names = [], [], []
+    collision_energies, ion_types = [], []
+    num_bins = upper_limit = None
+
+    # --- pickle (collision-agnostic baselines, e.g. 3DMolMS) ---
+    if binned_pred_file.suffix == ".p":
+        with open(binned_pred_file, "rb") as fp:
+            obj = pickle.load(fp)
+        num_bins = int(obj["num_bins"])
+        upper_limit = int(obj["upper_limit"])
+        name_to_ces = {}
+        for spec, ces in data_df[["spec", "collision_energies"]].values:
+            try:
+                name_to_ces[spec] = list(ast.literal_eval(ces)) if isinstance(ces, str) else list(ces)
+            except (ValueError, SyntaxError):
+                name_to_ces[spec] = []
+        for pred, name, smi in zip(obj["preds"], obj["spec_names"], obj["smiles"]):
+            name = common.rm_collision_str(name)
+            for ce in name_to_ces.get(name, []) or [float("nan")]:
+                pred_spec_ars.append(pred)
+                pred_smiles.append(smi)
+                pred_spec_names.append(name + f"_collision {float(ce):.0f}")
+                collision_energies.append(float(ce))
+                ion_types.append(name_to_ion.get(name))
+        return (pred_spec_ars, pred_smiles, pred_spec_names, collision_energies,
+                ion_types, num_bins, upper_limit)
+
+    # --- HDF5: try PredSpecDB (fragment models) first ---
+    try:
+        pred_specs = common.PredSpecDB(h5_path=binned_pred_file, mode="r")
+        for spec_tuple in pred_specs.get_all_specs():
+            # get_all_specs yields (name, composite) or, when a per-spec remark is
+            # stored (e.g. MassFormer writes the inchikey), (name, remark, composite).
+            spec_id, spec_data2 = spec_tuple[0], spec_tuple[-1]
+            for _spec_id2, spec_data in spec_data2.items():
+                cur_upper = int(_get_spec_meta_value(spec_data, "upper_limit"))
+                cur_bins = int(_get_spec_meta_value(spec_data, "num_bins"))
+                if upper_limit is None:
+                    upper_limit, num_bins = cur_upper, cur_bins
+                name = common.rm_collision_str(spec_id)
+                # Binned models (MassFormer) group CEs under one base-name composite,
+                # so the CE lives on the per-CE MassSpec, not in spec_id; read it from
+                # the spec and only fall back to parsing spec_id (fragment layout).
+                ce = getattr(spec_data, "collision_energy", None)
+                if ce is None:
+                    ce = common.get_collision_energy(spec_id)
+                # Fragment models store binned intensities under "intens"; binned
+                # models (MassFormer) store them under "binned_spec".
+                if getattr(spec_data, "has_intens", False):
+                    binned = spec_data["intens"][:]
+                else:
+                    binned = spec_data["binned_spec"][:]
+                pred_spec_ars.append(binned)
+                pred_smiles.append(spec_data["root_canonical_smiles"])
+                pred_spec_names.append(name + f"_collision {float(ce):.0f}")
+                collision_energies.append(ce)
+                ion_types.append(name_to_ion.get(name))
+    except Exception:
+        num_bins = upper_limit = None
+        pred_spec_ars, pred_smiles, pred_spec_names = [], [], []
+        collision_energies, ion_types = [], []
+
+    if num_bins is not None:
+        return (pred_spec_ars, pred_smiles, pred_spec_names, collision_energies,
+                ion_types, num_bins, upper_limit)
+
+    # --- HDF5: legacy binned layout (MassFormer / GrAFF-MS) ---
+    pred_specs = common.HDF5Dataset(binned_pred_file)
+    upper_limit = int(pred_specs.attrs["upper_limit"])
+    num_bins = int(pred_specs.attrs["num_bins"])
+    for pred_spec_obj in pred_specs.h5_obj.values():
+        for smiles_obj in pred_spec_obj.values():
+            name = smiles = None
+            for ce_key, ce_obj in smiles_obj.items():
+                if name is None:
+                    name = ce_obj.attrs["spec_name"]
+                if smiles is None:
+                    smiles = ce_obj.attrs["smiles"]
+                name = common.rm_collision_str(name)
+                ce = common.get_collision_energy(ce_key)
+                pred_spec_ars.append(ce_obj["spec"][:])
+                pred_smiles.append(smiles)
+                pred_spec_names.append(name + f"_collision {float(ce):.0f}")
+                collision_energies.append(ce)
+                ion_types.append(name_to_ion.get(name))
+    pred_specs.close()
+    return (pred_spec_ars, pred_smiles, pred_spec_names, collision_energies,
+            ion_types, num_bins, upper_limit)
+
+
 def main(args):
     """main."""
     dataset = args.dataset
@@ -140,44 +249,19 @@ def main(args):
     name_to_ion = dict(data_df[["spec", "ionization"]].values)
 
     binned_pred_file = Path(args.binned_pred_file)
-    outfile = args.outfile
-    if outfile is None:
-        outfile = binned_pred_file.parent / "pred_eval.yaml"
+    outfile = Path(args.outfile) if args.outfile is not None else (
+        binned_pred_file.parent / "pred_eval.yaml")
     outfile_grouped_template = str(outfile.parent / "pred_eval_grouped_{}.tsv")
 
-    pred_specs = common.PredSpecDB(h5_path=binned_pred_file, mode='r')
-
-    pred_spec_ars = []
-    pred_smiles = []
-    pred_spec_names = []
-    collision_energies = []
-    ion_types = []
-
-    num_bins = None
-    upper_limit = None
-    for spec_id, spec_data2 in pred_specs.get_all_specs():
-        for spec_id2, spec_data in spec_data2.items():
-            cur_upper_limit = int(_get_spec_meta_value(spec_data, "upper_limit"))
-            cur_num_bins = int(_get_spec_meta_value(spec_data, "num_bins"))
-            if upper_limit is None:
-                upper_limit = cur_upper_limit
-                num_bins = cur_num_bins
-            elif upper_limit != cur_upper_limit or num_bins != cur_num_bins:
-                raise ValueError(
-                    "Prediction file contains inconsistent binning metadata: "
-                    f"expected num_bins={num_bins}, upper_limit={upper_limit}, "
-                    f"got num_bins={cur_num_bins}, upper_limit={cur_upper_limit} "
-                    f"for {spec_id}/{spec_id2}"
-                )
-            name = spec_id
-            smiles = spec_data['root_canonical_smiles']
-            name = common.rm_collision_str(name)
-            collision_eng_key = common.get_collision_energy(spec_id)
-            pred_spec_ars.append(spec_data['intens'][:])
-            pred_smiles.append(smiles)
-            pred_spec_names.append(name + f'_collision {float(collision_eng_key):.0f}')
-            collision_energies.append(collision_eng_key)
-            ion_types.append(name_to_ion[name])
+    (
+        pred_spec_ars,
+        pred_smiles,
+        pred_spec_names,
+        collision_energies,
+        ion_types,
+        num_bins,
+        upper_limit,
+    ) = _load_predictions(binned_pred_file, data_df)
 
     if num_bins is None or upper_limit is None:
         raise ValueError(f"No prediction spectra found in {binned_pred_file}")

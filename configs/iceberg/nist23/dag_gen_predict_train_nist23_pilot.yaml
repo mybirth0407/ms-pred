@@ -1,0 +1,36 @@
+# ICEBERG NIST'23 — PILOT (fold-swapped), STAGE 1 self-prediction over the split.
+# Predicts fragment DAGs for all pilot specs (train+val folds) using the pilot gen ckpt,
+# so stage-2 has intensity targets and the val fold has DAGs for final eval.
+# Reads:  results/iceberg_nist23/pilot_rnd1/ckpt/gen/best.ckpt
+# Writes: results/iceberg_nist23/pilot_rnd1/preds_train_100/tree_preds.hdf5. GPU 6.
+# Single GPU: the multi-GPU worker path hit a CUDA "illegal memory access" in the
+# random-walk PE sparse coalesce; one device sidesteps it and 22k specs is fast enough.
+launcher_args: {experiment_name: iceberg_nist23,
+  script_name: "src/ms_pred/iceberg/predict_gen.py",
+  slurm_script: launcher_scripts/generic_slurm.sh,
+  launch_method: local,
+  visible_devices: [6],
+}
+universal_args:
+  _slurm_args:
+  - {gpus: 1, cpus-per-task: 7, job-name: forward_train, mem-per-cpu: 8G,
+    time: '1-18:00:00'}
+  debug: [false]
+  gpu: [true]
+
+  batch-size: [96]
+  dataset-name: [nist23]
+  num-gpu-workers: [2]
+  num-cpu-workers: [32]
+  threshold: [0.0]
+  max-nodes: [100]
+  num-decoys: [0]
+  pubchem-map-path: ['data/retrieval/pubchem/pubchem_formulae_inchikey.hdf5']
+  # genpred split labels ALL pilot specs (train+val) as 'train'; train_only then
+  # predicts DAGs for exactly the 22,342 pilot specs (not the whole 176k dataset).
+  subset-datasets: [train_only]
+
+iterative_args:
+  -  split-name: [pilot_swapped_scaffold_1_genpred.tsv]
+     checkpoint-pth: [results/iceberg_nist23/pilot_rnd1/ckpt/gen/best.ckpt]
+     save-dir: [pilot_rnd1/preds_train_100]

@@ -18,7 +18,7 @@ universal_args:
   max-epochs: [200]
 
   dataset-name: [nist23]
-  split-name: [split_1.tsv]
+  split-name: [scaffold_1.tsv]
 
   learning-rate: [0.000736]
   lr-decay-rate: [0.825]
@@ -49,9 +49,9 @@ universal_args:
   ppm-tol: [20]
 
 iterative_args:
-  -  split-name: [split_1.tsv]
-     save-dir: [split_1_rnd1]
-     magma-dag-folder: [results/iceberg_nist23/split_1_rnd1/preds_train_100_inten.hdf5]
+  -  split-name: [scaffold_1.tsv]
+     save-dir: [scaffold_1_rnd1]
+     magma-dag-folder: [results/iceberg_nist23/scaffold_1_rnd1/preds_train_100_inten.hdf5]
      seed: [1]
 
 #  -  split-name: [split_1.tsv]
